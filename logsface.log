@@ -1,0 +1,4 @@
+INFO 2020-04-10 10:38:29,456 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-10 10:38:44,546 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\settings.py changed, reloading.
+INFO 2020-04-10 10:38:45,139 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-10 10:39:09,363 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\settings.py changed, reloading.

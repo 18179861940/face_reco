@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <title>人脸打卡</title>
+</head>
+<body>
+    <div style=" width:800px; height:600px; margin:0 auto; padding-top: 20px;">
+          <div  id="canvas_container" style="display: inline">
+            <!-- 画面显示canvas -->
+              <video id="videoInput" style="
+                  display: inline;background-color:rgb(101, 103, 103); margin:0 auto;
+                  margin-left: -20px;  margin-bottom: -7px; border-radius: 10px;" width=320 height=240></video>
+              <canvas id="canvasOutput" width=320 height=240 style="
+                  display: inline;background-color:rgb(211, 103, 103); margin:0 auto;
+                  margin-left: -20px;  margin-bottom: -7px; border-radius: 10px;"></canvas>
+              <textarea class="code" style="display:none;" rows="10" cols="80" id="codeEditor" spellcheck="false"></textarea>
+              <p class="err" id="errorMessage"></p>
+          </div>
+        <div class="caption"></div>
+        <div class="caption"></div>
+         <div id="img_region" style=" margin-top:10px;align-items: center; border-radius: 10px;">
+              <div style="display:inline; height:12%;  justify-content: center ">
+                <div style="display:inline; text-align:center; margin:0 auto; width:90%">
+                  <button id="openCameraBt">
+                      <span>打开摄像头</span>
+                  </button>
+                </div>
+              </div>
+         </div>
+    </div>
+
+<script src="js/utils.js"></script>
+<script id="codeSnippet" type="text/code-snippet">
+    // 保存成jpg格式的图片
+
+        let video = document.getElementById('videoInput');
+        let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        let gray = new cv.Mat();
+        let cap = new cv.VideoCapture(video);
+        let faces = new cv.RectVector();
+        let classifier = new cv.CascadeClassifier();
+
+
+
+        // load pre-trained classifiers
+        classifier.load('haarcascade_frontalface_default.xml');
+
+        const FPS = 30;
+        function processVideo() {
+            try {
+                if (!streaming) {
+                    // clean and stop.
+                    src.delete();
+                    dst.delete();
+                    gray.delete();
+                    faces.delete();
+                    classifier.delete();
+                    return;
+                }
+                let begin = Date.now();
+                // start processing.
+                cap.read(src);
+                src.copyTo(dst);
+                cv.cvtColor(dst, gray, cv.COLOR_RGBA2GRAY, 0);
+                // detect faces.
+                classifier.detectMultiScale(gray, faces, 1.1, 3, 0);
+                // draw faces.
+                for (let i = 0; i < faces.size(); ++i) {
+                    let face = faces.get(i);
+                    let point1 = new cv.Point(face.x, face.y);
+                    let point2 = new cv.Point(face.x + face.width, face.y + face.height);
+                    cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
+                    if(i<6){
+                        // save image
+                        let downloadLink = document.createElement("a");
+                        downloadLink.download = 'face.jpg';
+                        let canvasDownload = document.createElement('canvas');
+                        let canvasContext = canvasDownload.getContext('2d');
+                        downloadLink.href =  document.getElementById("canvasOutput").toDataURL("image/jpg");
+                        downloadLink.click();
+                        downloadLink.remove();
+                    }
+                }
+
+
+                cv.imshow('canvasOutput', dst);
+
+                // schedule the next one.
+                let delay = 1000/FPS - (Date.now() - begin);
+                setTimeout(processVideo, delay);
+            } catch (err) {
+                utils.printError(err);
+            }
+        };
+
+        // schedule the first one.
+        setTimeout(processVideo, 0);
+</script>
+<script type="text/javascript">
+    let utils = new Utils('errorMessage');
+    utils.loadCode('codeSnippet', 'codeEditor');
+
+    let streaming = false;
+    let videoInput = document.getElementById('videoInput');
+    let startAndStop = document.getElementById('openCameraBt');
+    let canvasOutput = document.getElementById('canvasOutput');
+    let canvasContext = canvasOutput.getContext('2d');
+
+    startAndStop.addEventListener('click', () => {
+        if(!streaming) {
+            utils.clearError();
+            utils.startCamera('qvga', onVideoStarted, 'videoInput');
+        } else {
+            utils.stopCamera();
+            onVideoStopped();
+        }
+    });
+
+    function onVideoStarted() {
+        streaming = true;
+        startAndStop.innerText = '关闭摄像头';
+        videoInput.width = videoInput.videoWidth;
+        videoInput.height = videoInput.videoHeight;
+        utils.executeCode('codeEditor');
+    }
+
+    function onVideoStopped() {
+        streaming = false;
+        canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+        startAndStop.innerText = '打开摄像头';
+    }
+
+    utils.loadOpenCv(() => {
+        let faceCascadeFile = 'haarcascade_frontalface_default.xml';
+        utils.createFileFromUrl(faceCascadeFile, faceCascadeFile, () => {
+            startAndStop.removeAttribute('disabled');
+        });
+    });
+</script>
+</body>
+
+</html>
