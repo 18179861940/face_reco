@@ -120,7 +120,7 @@ class GetPersonList(APIView):
         start_time = '2020-01-01'
         end_time = datetime.datetime.now()
         user_list = []
-        user_infos = User.objects.filter(start_time__gte=start_time, end_time__lte=end_time).order_by("start_time")
+        user_infos = User.objects.filter(is_delete=False, start_time__range=[start_time, end_time]).order_by("-start_time")
         print(user_infos)
         if user_infos:
             for user_info in user_infos:
@@ -170,10 +170,10 @@ class GetPersonList(APIView):
                 end_time = datetime.datetime.now()
             if "user_name" in data.keys():
                 name = request.data["user_name"]
-                user_infos = User.objects.filter(name__contains=name, start_time__gte=start_time, end_time__lte=end_time).order_by(
+                user_infos = User.objects.filter(is_delete=False, name__contains=name, start_time__range=[start_time, end_time]).order_by(
                     "-start_time")
             else:
-                user_infos = User.objects.filter(start_time__gte=start_time, end_time__lte=end_time).order_by("-start_time")
+                user_infos = User.objects.filter(is_delete=False, start_time__range=[start_time, end_time]).order_by("-start_time")
 
         else:
             user_infos = User.objects.filter(is_delete=False).order_by("-start_time")

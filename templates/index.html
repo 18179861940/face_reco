@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
     <title>人脸打卡</title>
 </head>
 <body>
@@ -20,11 +19,20 @@
           </div>
         <div class="caption"></div>
         <div class="caption"></div>
-         <div id="img_region" style=" margin-top:10px;align-items: center; border-radius: 10px;">
+         <div id="img_region" style="display: inline; margin-top:10px;align-items: center; border-radius: 10px;">
               <div style="display:inline; height:12%;  justify-content: center ">
                 <div style="display:inline; text-align:center; margin:0 auto; width:90%">
                   <button id="openCameraBt">
                       <span>打开摄像头</span>
+                  </button>
+                </div>
+              </div>
+         </div>
+        <div style="display: inline; margin-top:10px;align-items: center; border-radius: 10px;">
+              <div style="display:inline; height:12%;  justify-content: center ">
+                <div style="display:inline; text-align:center; margin:0 auto; width:90%">
+                  <button id="cardList">
+                      <span><a href="cardlist.html" target="_blank">考勤列表</a></span>
                   </button>
                 </div>
               </div>
@@ -114,6 +122,7 @@
     let videoInput = document.getElementById('videoInput');
     let startAndStop = document.getElementById('openCameraBt');
     let canvasOutput = document.getElementById('canvasOutput');
+    let cardList = document.getElementById('cardList');
     let canvasContext = canvasOutput.getContext('2d');
 
     startAndStop.addEventListener('click', () => {
@@ -147,6 +156,7 @@
             startAndStop.removeAttribute('disabled');
         });
     });
+
 </script>
 </body>
 

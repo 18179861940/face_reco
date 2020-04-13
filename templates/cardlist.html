@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>考勤列表</title>
+</head>
+<body>
+    <div>
+        <div style="float: right; margin-bottom: 20px">
+            姓名：<input />
+            开始时间：<input />
+            结束时间：<input />
+            <button>搜索</button>
+        </div>
+        <div style="width:90%;margin: 10px auto">
+            <table border="1" width="90%" height="50" cellspacing="0" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <td>id</td>
+                        <td>姓名</td>
+                        <td>上班打卡时间</td>
+                        <td>下班打卡时间</td>
+                        <td>操作</td>
+                    </tr>
+                </thead>
+                <tbody id="tbMain">
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+<script>
+    function list(){
+        // 请求打卡列表接口
+        var xhr = new XMLHttpRequest();
+        xhr.open("get","http://127.0.0.1:8000/users/get_list/");
+        xhr.send(null);
+        xhr.onreadystatechange = function(){
+            if(xhr.status === 200 && xhr.readyState === 4){
+                console.log("列表",xhr.responseText);
+                let result = xhr.responseText;
+                let jsonResponse = JSON.parse(result);
+                var tbody = document.getElementById('tbMain');  
+                let per = jsonResponse["data"];
+                for(var i = 0;i < per.length; i++){ //遍历一下json数据  
+                  var trow = getDataRow(per[i]); //定义一个方法,返回tr数据  
+                  tbody.appendChild(trow);  
+                } 
+                console.log("列表1",jsonResponse["data"]);
+            }
+        }
+    };
+    function getDataRow(h){  
+     var row = document.createElement('tr'); //创建行  
+       
+     var idCell = document.createElement('td'); //创建第一列id  
+     idCell.innerHTML = h.user_id; //填充数据  
+     row.appendChild(idCell); //加入行  ，下面类似  
+       
+     var nameCell = document.createElement('td');//创建第二列name  
+     nameCell.innerHTML = h.user_name;  
+     row.appendChild(nameCell);  
+       
+     var startTimeCell = document.createElement('td');//创建第三列上班打卡时间  
+     startTimeCell.innerHTML = h.start_time;  
+     row.appendChild(startTimeCell);  
+
+     var endTimeCell = document.createElement('td');//创建第四列下班打卡时间  
+     endTimeCell.innerHTML = h.end_time;  
+     row.appendChild(endTimeCell);  
+       
+     //到这里，json中的数据已经添加到表格中，下面为每行末尾添加删除按钮  
+       
+     var delCell = document.createElement('td');//创建第五列，操作列  
+     row.appendChild(delCell);  
+
+     var btnMod = document.createElement('input'); //创建一个input控件  
+     btnMod.setAttribute('type','button'); //type="button"  
+     btnMod.setAttribute('value','编辑');
+
+     var btnDel = document.createElement('input'); //创建一个input控件  
+     btnDel.setAttribute('type','button'); //type="button"  
+     btnDel.setAttribute('value','删除');   
+     
+     //编辑操作  
+     btnMod.οnclick=function(){ 
+        // 跳出来关于某个员工某天打卡记录的新页面或者弹框 
+         // 修改后提交然后请求修改打卡记录接口
+        var xhr = new XMLHttpRequest();
+        xhr.open("post","http://127.0.0.1:8000/users/modify_card/");
+        var data;
+        if (type === "formdata") {
+            data = new FormData();
+            data.append("key", "value");
+        }
+        xhr.send(data)
+     };
+
+     //删除操作  
+     btnDel.οnclick=function(){  
+         if(confirm("确定删除这一行嘛？")){  
+             //找到按钮所在行的节点，然后删掉这一行  
+             this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);  
+             //btnDel - td - tr - tbody - 删除(tr)  
+             //刷新网页还原。实际操作中，还要删除数据库中数据，实现真正删除  
+          }  
+     };
+     delCell.appendChild(btnMod);  //把编辑按钮加入td  
+     delCell.appendChild(btnDel);  //把删除按钮加入td  
+       
+     return row; //返回tr数据      
+     };
+    list()
+</script>
+</html>
