@@ -38,12 +38,16 @@ def baidu_face_search():
     group_id = json['result']['user_list'][0]['group_id']
     if int(score) < 80:
         print('没有找到匹配的人物')
-        return 'error'
+        data = {
+            "result": False,
+            "message": "没有找到匹配的人物"
+        }
+        return data
     else:
         print('在%s用户组找到用户%s,匹配度为%s' % (group_id, user_id, score))
         print('%s打卡成功' % user_id)
         data = {
-            "result": "OK",
+            "result": True,
             "data": {
                 "score": score,
                 "user_id": user_id,

@@ -14,7 +14,7 @@ from users.serializers import UserSerializer
 from utils.baidu_face_search import baidu_face_search
 
 s_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '7:30', '%Y-%m-%d%H:%M')
-s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:00', '%Y-%m-%d%H:%M')
+s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:29', '%Y-%m-%d%H:%M')
 e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 e_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '23:59', '%Y-%m-%d%H:%M')
 
@@ -30,24 +30,33 @@ class UserCardView(APIView):
         # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
         if n_time > s_time and n_time < s_time1:
             datas = baidu_face_search()
-            if datas["result"] == "OK":
+            if datas["result"] is True:
                 name = datas["data"]["user_id"]
-                User.objects.create(name=name)
-                data = {
-                    "result": "OK",
-                    "message": "上班打卡成功"
-                }
-                return Response(data)
+                # 判断当前这个人是否已经上班打过卡
+                user_info = User.objects.filter(name=name, start_time__range=[s_time, s_time1])
+                if not user_info:
+                    User.objects.create(name=name)
+                    data = {
+                        "result": True,
+                        "message": "上班打卡成功"
+                    }
+                    return Response(data)
+                else:
+                    data = {
+                        "result": True,
+                        "message": "上班打卡成功"
+                    }
+                    return Response(data)
             else:
                 data = {
-                    "result": "error",
-                    "message": "请重新识别"
+                    "result": False,
+                    "message": "没有找到匹配的人物"
                 }
                 return Response(data)
         # 是否在下班时间打卡范围
         elif n_time > e_time and n_time < e_time1:
             datas = baidu_face_search()
-            if datas["result"] == "OK":
+            if datas["result"] is True:
                 name = datas["data"]["user_id"]
                 user_info = User.objects.filter(name=name, start_time__range=[s_time, s_time1])
                 if user_info:
@@ -55,27 +64,27 @@ class UserCardView(APIView):
                         end_time=n_time
                     )
                     data = {
-                        "result": "OK",
+                        "result": True,
                         "message": "下班打卡成功"
                     }
                     return Response(data)
                 else:
                     data = {
-                        "result": "error",
-                        "message": "上班时间没有打卡哦"
+                        "result": False,
+                        "message": "上班时间没有打卡,请联系管理员"
                     }
                     return Response(data)
 
             else:
                 data = {
-                    "result": "error",
-                    "message": "不是该公司员工"
+                    "result": False,
+                    "message": "没有找到匹配的人物"
                 }
                 return Response(data)
         # 是否早退
         elif n_time < e_time and n_time > s_time1:
             datas = baidu_face_search()
-            if datas["result"] == "OK":
+            if datas["result"] is True:
                 name = datas["data"]["user_id"]
                 user_info = User.objects.filter(name=name, start_time__range=[s_time, s_time1])
                 if user_info:
@@ -83,22 +92,21 @@ class UserCardView(APIView):
                         end_time=n_time
                     )
                     data = {
-                        "result": "OK",
+                        "result": True,
                         "message": "早退打卡",
-                        "data": datas
                     }
                     return Response(data)
                 else:
                     data = {
-                        "result": "error",
-                        "message": "上班时间没有打卡哦"
+                        "result": False,
+                        "message": "上班时间没有打卡,请联系管理员"
                     }
                     return Response(data)
 
             else:
                 data = {
-                    "result": "error",
-                    "message": "不是该公司员工"
+                    "result": False,
+                    "message": "没有找到匹配的人物"
                 }
                 return Response(data)
 
