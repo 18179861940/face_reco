@@ -11,7 +11,10 @@ def picToBase64(file_path):
         img = base64.b64encode(f.read()).decode('utf-8')
         return img
 
-
+import time
+# 格式化时间戳为本地的时间
+nowtime = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+print(nowtime)
 # 遍历获取图片路径
 def getPicPath(target_path):
     # 返回指定路径的文件夹名称
@@ -25,6 +28,6 @@ def getPicPath(target_path):
     n = int(len(dirs))
     if len(dirs):
         # 拼接字符串(根据情况修改)
-        pa = target_path + "\\" + "face " + "(" + str(n-10) + ")" + ".jpg"
+        pa = target_path + "\\" + str(int(nowtime)-5) + ".jpg"
         print(pa)
         return pa

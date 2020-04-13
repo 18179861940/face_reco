@@ -82,16 +82,25 @@
                     let point1 = new cv.Point(face.x, face.y);
                     let point2 = new cv.Point(face.x + face.width, face.y + face.height);
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
-                    if(i<1){
+                    // 日期作为图片名称
+                    var date=new Date();
+                    var year=date.getFullYear();
+                    var month = date.getMonth() + 1<10? "0"+(date.getMonth() + 1):date.getMonth() + 1;
+                    var day=date.getDate()<10? "0" + date.getDate():date.getDate();
+                    var hour=date.getHours();
+                    var minute=date.getMinutes();
+                    var second=date.getSeconds();
+                    var nowtime=year+''+month+''+day+''+hour+''+minute+''+second
+                   if(i<1){
                         // save image
                         let downloadLink = document.createElement("a");
-                        downloadLink.download = 'face.jpg';
+                        downloadLink.download = nowtime+'.jpg';
                         let canvasDownload = document.createElement('canvas');
                         let canvasContext = canvasDownload.getContext('2d');
                         downloadLink.href =  document.getElementById("canvasOutput").toDataURL("image/jpg");
                         downloadLink.click();
                         downloadLink.remove();
-                    }
+                   }
                     // 请求人脸打卡接口
                     var xhr = new XMLHttpRequest();
                     xhr.open("get","http://127.0.0.1:8000/users/register_face/");
