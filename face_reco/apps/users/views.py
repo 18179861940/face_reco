@@ -12,7 +12,6 @@ from users.models import User
 from users.serializers import UserSerializer
 # 上下班打卡范围时间
 from utils.baidu_face_search import baidu_face_search
-
 s_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '7:30', '%Y-%m-%d%H:%M')
 s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:29', '%Y-%m-%d%H:%M')
 e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
@@ -112,29 +111,108 @@ class UserCardView(APIView):
 
 
 class GetPersonList(APIView):
-    # 获取考勤记录（按日，周，月，年，自定义查看）
-    def post(self, request):
-        # 开始查询时间
-        start_time = request.data["start_time"]
-        # 结束查询时间
-        end_time = request.data["end_time"]
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    def get(self,request):
+        """
+        获取所有考勤记录
+        """
+        start_time = '2020-01-01'
+        end_time = datetime.datetime.now()
         user_list = []
-        user_infos = User.objects.filter(start_time__gte=start_time, end_time__lte=end_time).Orderby("start_time")
+        user_infos = User.objects.filter(start_time__gte=start_time, end_time__lte=end_time).order_by("start_time")
+        print(user_infos)
         if user_infos:
             for user_info in user_infos:
-                user_id = user_info.user_id
+                user_id = user_info.id
+                user_name = user_info.name
                 s_time = user_info.start_time
                 e_time = user_info.end_time
                 user_dict = {
                     "user_id": user_id,
+                    "user_name": user_name,
                     "start_time": s_time,
                     "end_time": e_time,
                 }
                 user_list.append(user_dict)
         data = {
-            "result": "OK",
+            "result": True,
             "data": user_list
         }
         return Response(data=data)
+
+    # 获取考勤记录（按日，周，月，年，自定义查看）
+    def post(self, request):
+        """
+         # 获取考勤记录（按日期或姓名,自定义查看）
+        :param request:
+        :return:
+        """
+        data = request.data
+        user_list = []
+        # 1.是否有时间查询
+        if 'start_time' in data.keys() and 'end_time' in data.keys():
+            # 开始查询时间
+            start_time = request.data["start_time"]
+            # 结束查询时间
+            end_time = request.data["end_time"]
+            if start_time == '' and end_time != '':
+                import datetime
+                time_end = datetime.date(*map(int, end_time.split('-')))
+                end_time = str(time_end + datetime.timedelta(days=1))
+                start_time = '2020-01-01'
+            elif start_time == '' and end_time == '':
+                import datetime
+                start_time = '2020-01-01'
+                end_time = datetime.datetime.now()
+            elif start_time != '' and end_time == '':
+                import datetime
+                end_time = datetime.datetime.now()
+            if "user_name" in data.keys():
+                name = request.data["user_name"]
+                user_infos = User.objects.filter(name__contains=name, start_time__gte=start_time, end_time__lte=end_time).order_by(
+                    "-start_time")
+            else:
+                user_infos = User.objects.filter(start_time__gte=start_time, end_time__lte=end_time).order_by("-start_time")
+
+        else:
+            user_infos = User.objects.filter(is_delete=False).order_by("-start_time")
+        if user_infos:
+            for user_info in user_infos:
+                user_id = user_info.id
+                user_name = user_info.name
+                s_time = user_info.start_time
+                e_time = user_info.end_time
+                user_dict = {
+                    "user_id": user_id,
+                    "user_name": user_name,
+                    "start_time": s_time,
+                    "end_time": e_time,
+                }
+                user_list.append(user_dict)
+        data = {
+            "result": True,
+            "data": user_list
+        }
+        return Response(data=data)
+
+
+# 修改打卡记录（暂时谁都可以修改，没有管理员，但是只能修改打卡时间）
+class UpdateCardList(APIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    def post(self,request):
+        # 获取要修改的用户id（唯一）
+        user_id = request.data["user_id"]
+        start_time = request.data["start_time"]
+        # 结束时间
+        end_time = request.data["end_time"]
+        user_info = User.objects.filter(id=user_id)
+        if not user_info:
+            return Response({"result": False, "message": "没有找到该用户的信息"})
+        else:
+            User.objects.filter(id=user_id).update(start_time=start_time, end_time=end_time)
+            return Response({"result": True, "message": "修改成功"})
+
 
 
