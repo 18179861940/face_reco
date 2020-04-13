@@ -5,7 +5,7 @@ from face_reco.apps.utils.pic_to_base64 import picToBase64, getPicPath
 将保存在本地的图片与百度数据库里面存放的图片做对比
 每新增打开一次摄像头就调用一次
 """
-target_path = 'C:\\Users\\MyPC\\PycharmProjects\\face_attendance\\face_attendance\\photoSet'
+target_path = 'C:\\Users\\MyPC\\Downloads'
 file_path = getPicPath(target_path)   # 调用图片接口获取最后一个数据
 
 
@@ -21,7 +21,11 @@ def baidu_face_search():
     access_token = get_access_token.getAccessToken()
     if (access_token == ""):
         print("获取access_token失败")
-        return
+        data = {
+            "result": False,
+            "message": "获取access_token失败"
+        }
+        return data
     # 请求地址
     request_url = request_url + "?access_token=" + access_token
     # 请求头
@@ -32,7 +36,11 @@ def baidu_face_search():
     error_code = json['error_code']
     if (error_code != 0):
         print("==未识别图像==")
-        return
+        data = {
+            "result": False,
+            "message": "未识别图像"
+        }
+        return data
     score = json['result']['user_list'][0]['score']
     user_id = json['result']['user_list'][0]['user_id']
     group_id = json['result']['user_list'][0]['group_id']
@@ -59,4 +67,4 @@ def baidu_face_search():
 
 
 if __name__ == '__main__':
-    baidu_face_search(file_path)
+    baidu_face_search()

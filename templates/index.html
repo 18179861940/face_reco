@@ -32,6 +32,7 @@
     </div>
 
 <script src="js/utils.js"></script>
+<script src="js/jquery-3.4.1.min.js"></script>
 <script id="codeSnippet" type="text/code-snippet">
     // 保存成jpg格式的图片
 
@@ -73,7 +74,7 @@
                     let point1 = new cv.Point(face.x, face.y);
                     let point2 = new cv.Point(face.x + face.width, face.y + face.height);
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
-                    if(i<6){
+                    if(i<1){
                         // save image
                         let downloadLink = document.createElement("a");
                         downloadLink.download = 'face.jpg';
@@ -83,11 +84,17 @@
                         downloadLink.click();
                         downloadLink.remove();
                     }
+                    // 请求人脸打卡接口
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("get","http://127.0.0.1:8000/users/register_face/");
+                    xhr.send(null);
+                    xhr.onreadystatechange = function(){
+                        if(xhr.status === 200 && xhr.readyState === 4){
+                            console.log(xhr.responseText);
+                        }
+                    }
                 }
-
-
                 cv.imshow('canvasOutput', dst);
-
                 // schedule the next one.
                 let delay = 1000/FPS - (Date.now() - begin);
                 setTimeout(processVideo, delay);
@@ -113,6 +120,7 @@
         if(!streaming) {
             utils.clearError();
             utils.startCamera('qvga', onVideoStarted, 'videoInput');
+
         } else {
             utils.stopCamera();
             onVideoStopped();
