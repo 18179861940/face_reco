@@ -215,4 +215,17 @@ class UpdateCardList(APIView):
             return Response({"result": True, "message": "修改成功"})
 
 
+class DeleteCardRecord(APIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    def post(self,request):
+        # 获取要修改的用户id（唯一）
+        user_id = request.data["user_id"]
+        user_info = User.objects.filter(id=user_id)
+        if not user_info:
+            return Response({"result": False, "message": "没有找到该用户的信息"})
+        else:
+            User.objects.filter(id=user_id).update(is_delete=True)
+            return Response({"result": True, "message": "删除成功"})
+
 

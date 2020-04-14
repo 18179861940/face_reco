@@ -42,8 +42,6 @@
 <script src="js/utils.js"></script>
 <script src="js/jquery-3.4.1.min.js"></script>
 <script id="codeSnippet" type="text/code-snippet">
-    // 保存成jpg格式的图片
-
         let video = document.getElementById('videoInput');
         let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
         let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
@@ -51,8 +49,7 @@
         let cap = new cv.VideoCapture(video);
         let faces = new cv.RectVector();
         let classifier = new cv.CascadeClassifier();
-
-
+        let faceFlag=0;
 
         // load pre-trained classifiers
         classifier.load('haarcascade_frontalface_default.xml');
@@ -82,35 +79,41 @@
                     let point1 = new cv.Point(face.x, face.y);
                     let point2 = new cv.Point(face.x + face.width, face.y + face.height);
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
-                    // 日期作为图片名称
-                    var date=new Date();
-                    var year=date.getFullYear();
-                    var month = date.getMonth() + 1<10? "0"+(date.getMonth() + 1):date.getMonth() + 1;
-                    var day=date.getDate()<10? "0" + date.getDate():date.getDate();
-                    var hour=date.getHours();
-                    var minute=date.getMinutes();
-                    var second=date.getSeconds();
-                    var nowtime=year+''+month+''+day+''+hour+''+minute+''+second
-                   if(i<1){
+                    faceFlag=faceFlag+1
+                    console.log("faceFlag",faceFlag)
+
+                    if(faceFlag<3){
+                        // 日期作为图片名称
+                        var date=new Date();
+                        var year=date.getFullYear();
+                        var month = date.getMonth() + 1<10? "0"+(date.getMonth() + 1):date.getMonth() + 1;
+                        var day=date.getDate()<10? "0" + date.getDate():date.getDate();
+                        var hour=date.getHours();
+                        var minute=date.getMinutes();
+                        var second=date.getSeconds()<10? "0" + date.getSeconds():date.getSeconds();
+                        var nowtime=year+''+month+''+day+''+hour+''+minute+''+second+''
                         // save image
                         let downloadLink = document.createElement("a");
-                        downloadLink.download = nowtime+'.jpg';
+                        downloadLink.download = nowtime +'.jpg';
                         let canvasDownload = document.createElement('canvas');
                         let canvasContext = canvasDownload.getContext('2d');
                         downloadLink.href =  document.getElementById("canvasOutput").toDataURL("image/jpg");
                         downloadLink.click();
                         downloadLink.remove();
-                   }
-                    // 请求人脸打卡接口
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("get","http://127.0.0.1:8000/users/register_face/");
-                    xhr.send(null);
-                    xhr.onreadystatechange = function(){
-                        if(xhr.status === 200 && xhr.readyState === 4){
-                            console.log(xhr.responseText);
+                        // 请求人脸打卡接口
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("get","http://127.0.0.1:8000/users/register_face/");
+                        xhr.send(null);
+                        xhr.onreadystatechange = function(){
+                            if(xhr.status === 200 && xhr.readyState === 4){
+                                console.log(xhr.responseText);
+                            }
                         }
                     }
+
                 }
+
+
                 cv.imshow('canvasOutput', dst);
                 // schedule the next one.
                 let delay = 1000/FPS - (Date.now() - begin);

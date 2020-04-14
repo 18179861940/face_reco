@@ -28,6 +28,8 @@ def getPicPath(target_path):
     n = int(len(dirs))
     if len(dirs):
         # 拼接字符串(根据情况修改)
-        pa = target_path + "\\" + str(int(nowtime)-5) + ".jpg"
+        # pa = target_path + "\\" + str(int(nowtime)) + ".jpg"
+        pa = target_path + "\\" + dirs[n-1]
         print(pa)
         return pa
+getPicPath('C:\\Users\\MyPC\\Downloads')

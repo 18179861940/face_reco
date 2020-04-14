@@ -81,13 +81,13 @@
      btnMod.setAttribute('value','编辑');
 
      var btnDel = document.createElement('input'); //创建一个input控件  
-     btnDel.setAttribute('type','button'); //type="button"  
+     btnDel.setAttribute('type','button'); //type="button"    
      btnDel.setAttribute('value','删除');   
      
      //编辑操作  
-     btnMod.οnclick=function(){ 
+     btnMod.Onclick=function(){ 
         // 跳出来关于某个员工某天打卡记录的新页面或者弹框 
-         // 修改后提交然后请求修改打卡记录接口
+        // 修改后提交然后请求修改打卡记录接口
         var xhr = new XMLHttpRequest();
         xhr.open("post","http://127.0.0.1:8000/users/modify_card/");
         var data;
@@ -99,10 +99,11 @@
      };
 
      //删除操作  
-     btnDel.οnclick=function(){  
-         if(confirm("确定删除这一行嘛？")){  
-             //找到按钮所在行的节点，然后删掉这一行  
-             this.parentNode.parentNode.parentNode.removeChild(this.parentNode.parentNode);  
+     btnDel.Onclick=function(){  
+         if(confirm("删除？")){  
+             //找到按钮所在行的节点，然后删掉这一行 
+            //deleteReco(id);
+            this.parentNode.parentNode.removeChild(this.parentNode.parentNode);  
              //btnDel - td - tr - tbody - 删除(tr)  
              //刷新网页还原。实际操作中，还要删除数据库中数据，实现真正删除  
           }  
@@ -112,6 +113,28 @@
        
      return row; //返回tr数据      
      };
+    function deleteReco(user_id) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("post","http://127.0.0.1:8000/users/delete_card/");
+        xhr.setRequestHeader("Content-Type","application/json");
+        let data = {
+            "user_id":user_id
+        };
+
+
+        if (type === "formdata") {
+            data = new FormData();
+            data.append("key", "value");
+        }
+
+        xhr.send(data);
+        // （4） 回调函数  success
+        xhr.onreadystatechange = function() {
+            if(this.status===200){
+                console.log("responseText",this.responseText)
+            }
+        };
+    }
     list()
 </script>
 </html>
