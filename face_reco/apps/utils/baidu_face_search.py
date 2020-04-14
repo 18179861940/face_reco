@@ -35,7 +35,7 @@ def baidu_face_search():
     json = response.json()
     error_code = json['error_code']
     if (error_code != 0):
-        print("==未识别图像==")
+        print(file_path,"==未识别图像==")
         data = {
             "result": False,
             "message": "未识别图像"
@@ -52,7 +52,7 @@ def baidu_face_search():
         }
         return data
     else:
-        print('在%s用户组找到用户%s,匹配度为%s' % (group_id, user_id, score))
+        print(file_path, '在%s用户组找到用户%s,匹配度为%s' % (group_id, user_id, score))
         print('%s打卡成功' % user_id)
         data = {
             "result": True,

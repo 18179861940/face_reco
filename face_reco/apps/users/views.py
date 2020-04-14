@@ -37,13 +37,13 @@ class UserCardView(APIView):
                     User.objects.create(name=name)
                     data = {
                         "result": True,
-                        "message": "上班打卡成功"
+                        "message": name + "上班打卡成功"
                     }
                     return Response(data)
                 else:
                     data = {
                         "result": True,
-                        "message": "上班打卡成功"
+                        "message": name + "上班已经打过卡"
                     }
                     return Response(data)
             else:
@@ -64,13 +64,13 @@ class UserCardView(APIView):
                     )
                     data = {
                         "result": True,
-                        "message": "下班打卡成功"
+                        "message":  name + "下班打卡成功"
                     }
                     return Response(data)
                 else:
                     data = {
                         "result": False,
-                        "message": "上班时间没有打卡,请联系管理员"
+                        "message": name + "上班时间没有打卡,请联系管理员"
                     }
                     return Response(data)
 
@@ -92,13 +92,13 @@ class UserCardView(APIView):
                     )
                     data = {
                         "result": True,
-                        "message": "早退打卡",
+                        "message": name + "早退打卡",
                     }
                     return Response(data)
                 else:
                     data = {
                         "result": False,
-                        "message": "上班时间没有打卡,请联系管理员"
+                        "message": name + "上班时间没有打卡,请联系管理员"
                     }
                     return Response(data)
 

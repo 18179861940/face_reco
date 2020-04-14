@@ -16,7 +16,6 @@ import os
 import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print(os.path.join(os.path.dirname(BASE_DIR)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'face_reco/apps'))
 
 # Quick-start development settings - unsuitable for production
