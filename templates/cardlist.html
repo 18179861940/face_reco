@@ -18,8 +18,9 @@
                     <tr>
                         <td>id</td>
                         <td>姓名</td>
-                        <td>上班打卡时间</td>
-                        <td>下班打卡时间</td>
+                        <td>打卡类型</td>
+                        <td>打卡时间</td>
+                        <td>打卡状态</td>
                         <td>操作</td>
                     </tr>
                 </thead>
@@ -63,13 +64,29 @@
      nameCell.innerHTML = h.user_name;  
      row.appendChild(nameCell);  
        
-     var startTimeCell = document.createElement('td');//创建第三列上班打卡时间  
-     startTimeCell.innerHTML = h.start_time;  
-     row.appendChild(startTimeCell);  
+     var cardTypeCell = document.createElement('td');//创建第三列打卡类型 
+     if(h.user_type==="1"){
+         user_type="上班"
+     }else{
+         user_type="下班"
+     }
+     cardTypeCell.innerHTML = user_type;  
+     row.appendChild(cardTypeCell);  
 
-     var endTimeCell = document.createElement('td');//创建第四列下班打卡时间  
-     endTimeCell.innerHTML = h.end_time;  
-     row.appendChild(endTimeCell);  
+     var endTimeCell = document.createElement('td');//创建第四列打卡时间  
+     endTimeCell.innerHTML = h.push_time;  
+     row.appendChild(endTimeCell); 
+
+     var stateCell = document.createElement('td');//创建第四列打卡状态 
+     if(h.attend_state==="1"){
+         attend_state="正常"
+     }else if(h.attend_state==="2"){
+         attend_state="迟到"
+     }else{
+         attend_state="早退"
+     }
+     stateCell.innerHTML = attend_state;  
+     row.appendChild(stateCell);   
        
      //到这里，json中的数据已经添加到表格中，下面为每行末尾添加删除按钮  
        
