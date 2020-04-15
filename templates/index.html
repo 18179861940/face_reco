@@ -85,38 +85,33 @@
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
                     cardFlag =cardFlag + 1;
                     console.log("******",cardFlag)
-                if(cardFlag % 5==0 && re==0){
-                    // 请求人脸打卡接口
-                    var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
-                    var base64 = data.split(",")[1];
-                    $.ajax({
-                         url:"http://127.0.0.1:8000/users/reco_face/",
-                         type:"post",
-                         data:{"base64":base64},
-                         dataType:"text",
-                         async:false,
-                         success:function(data){
-                             if(data!=null){
-                              // 页面显示提示信息
-                                stry = JSON.parse(data)
-                                var tbody = document.getElementById('errorMessage'); 
-                                let odiv=document.createElement("div");
-                                odiv.innerHTML = stry["retMsg"];
-                                tbody.appendChild(odiv);
-                                odiv.style.color="green";
-                                re = re + 1;
-                             }else{
-                                var tbody = document.getElementById('errorMessage'); 
-                                let odiv=document.createElement("div");
-                                odiv.innerHTML = "识别失败";
-                                tbody.appendChild(odiv);
-                                odiv.style.color="red";
-                                re = re + 1;
+                    if(cardFlag % 5==0){
+                        // 请求人脸打卡接口
+                        var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
+                        var base64 = data.split(",")[1];
+                        $.ajax({
+                             url:"http://127.0.0.1:8000/users/reco_face/",
+                             type:"post",
+                             data:{"base64":base64},
+                             dataType:"text",
+                             async:false,
+                             success:function(data){
+                                 if(data!=null){
+                                  // 页面显示提示信息
+                                    stry = JSON.parse(data)
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    tbody.innerHTML = stry["retMsg"];
+                                    tbody.style.color="green";
+                                 }else{
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    tbody.innerHTML = "识别失败";
+                                    tbody.style.color="red";
+                                 }
+
                              }
 
-                         }
-                     });
-                }
+                         });
+                    }
                 }
 
                 cv.imshow('canvasOutput', dst);

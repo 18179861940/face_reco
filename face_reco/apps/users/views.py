@@ -135,7 +135,6 @@ class UserCardView(APIView):
                 return Response(data)
 
 
-
 class FaceCardView(APIView):
     def post(self, request):
         base64 = request.data["base64"]
@@ -151,10 +150,15 @@ class FaceCardView(APIView):
                 "retCode": "0000",
                 "retMsg":  "添加成功"
             }
+        elif datas["error_code"] == 222207:
+            data = {
+                "retCode": "222207",
+                "retMsg": "未找到匹配的用户"
+            }
         else:
             data = {
                 "retCode": "0000",
-                "retMsg": "添加失败"
+                "retMsg": "添加成功"
             }
         return Response(data=data)
 

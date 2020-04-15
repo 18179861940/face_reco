@@ -9,7 +9,6 @@ from face_reco.apps.utils.pic_to_base64 import picToBase64, getPicPath
 # 调用百度API完成M:N人脸搜索
 # def baidu_face_multi_search(file_path):
 def baidu_face_multi_search(base64):
-    print("测试返回", base64)
     card_list = []
     request_url = "https://aip.baidubce.com/rest/2.0/face/v3/multi-search"
     params = {
@@ -23,7 +22,11 @@ def baidu_face_multi_search(base64):
     access_token = get_access_token.getAccessToken()
     if (access_token == ""):
         print("获取access_token失败")
-        return "error"
+        data = {
+            "error_code": 100,
+            "message": "无效的access_token参数"
+        }
+        return data
     # 请求地址
     request_url = request_url + "?access_token=" + access_token
     # 请求头
@@ -34,7 +37,11 @@ def baidu_face_multi_search(base64):
     error_code = json['error_code']
     if (error_code != 0):
         print("==未识别图像==")
-        return
+        data = {
+            "error_code": 222207,
+            "message": "未找到匹配的用户"
+        }
+        return data
     # 人脸列表
     face_list = json['result']['face_list']
     for face in face_list:
@@ -59,42 +66,3 @@ def baidu_face_multi_search(base64):
 # if __name__ == '__main__':
 #     baidu_face_multi_search(file_path)
 
-
-"""
-document.getElementById("divOut").innerHTML="< img src='../photoSet/a.jpj' />"
-let downloadLink = document.createElement("a");
-                        downloadLink.download = nowtime +'.jpg';
-                        let canvasDownload = document.createElement('canvas');
-                        let canvasContext = canvasDownload.getContext('2d');
-                        downloadLink.href =  document.getElementById("canvasOutput").toDataURL("image/jpg");
-                        downloadLink.click();
-                        downloadLink.remove();
-
-var xhr = new XMLHttpRequest();
-                    xhr.open("get","http://127.0.0.1:8000/users/reco_face/");
-                    xhr.send(null);
-                    xhr.onreadystatechange = function(){
-                        if(xhr.status === 200 && xhr.readyState === 4){
-                            console.log(xhr.responseText);
-                            let jsonResponse = JSON.parse(xhr.responseText);  
-                            let result = jsonResponse["result"];
-                            console.log("result",result)
-                            if(result==true){
-                                // 页面显示提示信息
-                                var tbody = document.getElementById('errorMessage'); 
-                                let odiv=document.createElement("div");
-                                odiv.innerHTML = jsonResponse["message"];
-                                tbody.appendChild(odiv);
-                                odiv.style.color="red";
-                                re = 1;
-                            }else{
-                                var tbody = document.getElementById('errorMessage'); 
-                                let odiv=document.createElement("div");
-                                odiv.innerHTML = jsonResponse["message"];
-                                tbody.appendChild(odiv);
-                                odiv.style.color="red";
-                                re = 1;
-                            }
-                        }
-                    }
-"""
