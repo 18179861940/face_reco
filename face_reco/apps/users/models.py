@@ -13,8 +13,6 @@ class AttendCard(models.Model):
     attendState = models.CharField(max_length=10, verbose_name='打卡状态',
                                    choices=(('1', '正常 '), ('2', '迟到'), ('3', '早退')), default='1')
     pushTime = models.DateTimeField(auto_now_add=True, verbose_name="打卡时间")
-
-    pushEndTime = models.DateTimeField(auto_now=True, verbose_name="下班打卡时间")
     is_delete = models.BooleanField(default=False)  # 是否删除
 
     class Meta:

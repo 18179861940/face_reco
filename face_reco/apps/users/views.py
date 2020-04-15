@@ -12,6 +12,8 @@ from users.models import AttendCard
 from users.serializers import UserSerializer
 # 上下班打卡范围时间
 from utils.baidu_face_search import baidu_face_search
+from utils.paginations import pagination
+
 s_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '7:30', '%Y-%m-%d%H:%M')
 s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:29', '%Y-%m-%d%H:%M')
 e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '19:00', '%Y-%m-%d%H:%M')
@@ -59,10 +61,7 @@ class UserCardView(APIView):
                 name = datas["data"]["user_id"]
                 user_info = AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1])
                 if user_info:
-                    AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1]).update(
-                        pushEndTime=n_time,
-                        attendType="2",
-                    )
+                    AttendCard.objects.create(userName=name, attendType="2")
                     data = {
                         "result": True,
                         "message":  name + "下班打卡成功"
@@ -88,11 +87,7 @@ class UserCardView(APIView):
                 name = datas["data"]["user_id"]
                 user_info = AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1])
                 if user_info:
-                    AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1]).update(
-                        pushEndTime=n_time,
-                        attendType="2",
-                        attendState="3"
-                    )
+                    AttendCard.objects.create(userName=name, attendType="2", attendState="3")
                     data = {
                         "result": True,
                         "message": name + "早退打卡",
@@ -102,6 +97,32 @@ class UserCardView(APIView):
                     data = {
                         "result": False,
                         "message": name + "上班时间没有打卡,请联系管理员"
+                    }
+                    return Response(data)
+
+            else:
+                data = {
+                    "result": False,
+                    "message": "没有找到匹配的人物"
+                }
+                return Response(data)
+        # 是否迟到
+        elif n_time > s_time1 and n_time < e_time:
+            datas = baidu_face_search()
+            if datas["result"] is True:
+                name = datas["data"]["user_id"]
+                user_info = AttendCard.objects.filter(userName=name, attendType="1", pushTime__range=[s_time, s_time1])
+                if user_info:
+                    data = {
+                        "result": True,
+                        "message": name + "上班已经打过卡",
+                    }
+                    return Response(data)
+                else:
+                    AttendCard.objects.create(userName=name, attendType="1", attendState="2")
+                    data = {
+                        "result": True,
+                        "message": name + "迟到打卡"
                     }
                     return Response(data)
 
@@ -134,21 +155,22 @@ class GetPersonList(APIView):
                 push_time = user_info.pushTime
                 attend_state = user_info.attendState
                 user_dict = {
-                    "user_id": user_id,
-                    "user_name": user_name,
-                    "user_code": user_code,
-                    "user_type": user_type,
-                    "push_time": push_time,
-                    "attend_state": attend_state,
+                    "id": user_id,
+                    "userName": user_name,
+                    "userCode": user_code,
+                    "attendType": user_type,
+                    "attendState": attend_state,
+                    "pushTime": push_time,
                 }
                 user_list.append(user_dict)
+        user_lists = pagination(1, 2, user_list)
         data = {
             "result": True,
-            "data": user_list
+            "data": user_lists
         }
         return Response(data=data)
 
-    # 获取考勤记录（按日，周，月，年，自定义查看）
+    # 获取考勤记录
     def post(self, request):
         """
          # 获取考勤记录（按日期或姓名,自定义查看）
@@ -157,33 +179,39 @@ class GetPersonList(APIView):
         """
         data = request.data
         user_list = []
+        current_page = request.data['page']  # 当前页
+        page_size = request.data['rows']  # 一页数据多少条
         # 1.是否有时间查询
-        if 'start_time' in data.keys() and 'end_time' in data.keys():
+        if 'startDate' in data.keys():
             # 开始查询时间
-            start_time = request.data["start_time"]
-            # 结束查询时间
-            end_time = request.data["end_time"]
-            if start_time == '' and end_time != '':
-                import datetime
-                time_end = datetime.date(*map(int, end_time.split('-')))
-                end_time = str(time_end + datetime.timedelta(days=1))
-                start_time = '2020-01-01'
-            elif start_time == '' and end_time == '':
-                import datetime
-                start_time = '2020-01-01'
-                end_time = datetime.datetime.now()
-            elif start_time != '' and end_time == '':
-                import datetime
-                end_time = datetime.datetime.now()
-            if "user_name" in data.keys():
-                name = request.data["user_name"]
-                user_infos = AttendCard.objects.filter(is_delete=False, userName__contains=name, pushTime__range=[start_time, end_time]).order_by(
-                    "-pushTime")
-            else:
-                user_infos = AttendCard.objects.filter(is_delete=False, pushTime__range=[start_time, end_time]).order_by("-pushTime")
-
+            start_time = request.data["startDate"]
         else:
-            user_infos = AttendCard.objects.filter(is_delete=False, attendType="1").order_by("-pushTime")
+            import datetime
+            start_time = '2020-01-01'
+        if 'endDate' in data.keys():
+            # 结束查询时间
+            end_time = request.data["endDate"]
+        else:
+            import datetime
+            end_time = datetime.datetime.now()
+        if "userName" in data.keys():
+            name = request.data["userName"]
+        else:
+            name = None
+        if "attendType" in data.keys():
+            attendType = request.data["attendType"]
+        else:
+            attendType = '1'
+        if "attendState" in data.keys():
+            attendState = request.data["attendState"]
+        else:
+            attendState = '1'
+        user_infos = AttendCard.objects.filter(is_delete=False,
+                                               userName__contains=name,
+                                               pushTime__range=[start_time, end_time],
+                                               attendType=attendType,
+                                               attendState=attendState
+                                               ).order_by("-pushTime")
         if user_infos:
             for user_info in user_infos:
                 user_id = user_info.id
@@ -199,9 +227,10 @@ class GetPersonList(APIView):
                     "attend_state": attend_state,
                 }
                 user_list.append(user_dict)
+        user_lists = pagination(current_page,page_size,user_list)
         data = {
             "result": True,
-            "data": user_list
+            "data": user_lists
         }
         return Response(data=data)
 
@@ -210,6 +239,7 @@ class GetPersonList(APIView):
 class UpdateCardList(APIView):
     serializer_class = UserSerializer
     queryset = AttendCard.objects.all()
+
     def post(self,request):
         # 获取要修改的用户id（唯一）
         user_id = request.data["user_id"]
