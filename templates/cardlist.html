@@ -36,7 +36,7 @@
     function list(){
         // 请求打卡列表接口
         var xhr = new XMLHttpRequest();
-        xhr.open("get","http://127.0.0.1:8000/users/get_list/");
+        xhr.open("get","http://127.0.0.1:8000/users/get_card_list/");
         xhr.send(null);
         xhr.onreadystatechange = function(){
             if(xhr.status === 200 && xhr.readyState === 4){
@@ -44,12 +44,12 @@
                 let result = xhr.responseText;
                 let jsonResponse = JSON.parse(result);
                 var tbody = document.getElementById('tbMain');  
-                let per = jsonResponse["data"];
+                let per = jsonResponse["data"]["row"];
                 for(var i = 0;i < per.length; i++){ //遍历一下json数据  
                   var trow = getDataRow(per[i]); //定义一个方法,返回tr数据  
                   tbody.appendChild(trow);  
                 } 
-                console.log("列表1",jsonResponse["data"]);
+                console.log("列表1",jsonResponse["data"]["row"]);
             }
         }
     };
@@ -57,15 +57,15 @@
      var row = document.createElement('tr'); //创建行  
        
      var idCell = document.createElement('td'); //创建第一列id  
-     idCell.innerHTML = h.user_id; //填充数据  
+     idCell.innerHTML = h.id; //填充数据  
      row.appendChild(idCell); //加入行  ，下面类似  
        
      var nameCell = document.createElement('td');//创建第二列name  
-     nameCell.innerHTML = h.user_name;  
+     nameCell.innerHTML = h.userName;  
      row.appendChild(nameCell);  
        
      var cardTypeCell = document.createElement('td');//创建第三列打卡类型 
-     if(h.user_type==="1"){
+     if(h.attendType==="1"){
          user_type="上班"
      }else{
          user_type="下班"
@@ -74,11 +74,11 @@
      row.appendChild(cardTypeCell);  
 
      var endTimeCell = document.createElement('td');//创建第四列打卡时间  
-     endTimeCell.innerHTML = h.push_time;  
+     endTimeCell.innerHTML = h.pushTime;  
      row.appendChild(endTimeCell); 
 
      var stateCell = document.createElement('td');//创建第四列打卡状态 
-     if(h.attend_state==="1"){
+     if(h.attendState==="1"){
          attend_state="正常"
      }else if(h.attend_state==="2"){
          attend_state="迟到"

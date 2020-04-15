@@ -19,8 +19,8 @@ def pagination(currentPage, pageSize, list_data):
     for i in content_list:
         result.append(i)
     data = {
-        'pageNo': int(currentPage),  # 当前页
-        'pageSize': int(pageSize),  # 当前页面数据条数   //TODO 这个不准确
+        'pageNo': int(paginator.num_pages),  # 当前页
+        'pageSize': int(len(paginator.page(paginator.num_pages))),  # 当前页面数据条数
         'total': total,  # 总条数
         'pageAmount': pageAmount,  # 总页数
         'row': result

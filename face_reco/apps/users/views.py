@@ -16,9 +16,13 @@ from utils.baidu_face_search import baidu_face_search
 from utils.paginations import pagination
 
 s_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '7:30', '%Y-%m-%d%H:%M')
-s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:29', '%Y-%m-%d%H:%M')
-e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '19:00', '%Y-%m-%d%H:%M')
+s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:29', '%Y-%m-%d%H:%M')
+e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 e_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '23:59', '%Y-%m-%d%H:%M')
+
+# 当天日期时间
+t_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '00:01', '%Y-%m-%d%H:%M')
+t_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '23:59', '%Y-%m-%d%H:%M')
 
 # 当前时间
 n_time = datetime.datetime.now()
@@ -29,127 +33,119 @@ class UserCardView(APIView):
     queryset = AttendCard.objects.all()
     # get请求方式
     def get(self, request):
-        # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
-        if n_time > s_time and n_time < s_time1:
-            datas = baidu_face_search()
-            if datas["result"] is True:
-                name = datas["data"]["user_id"]
-                # 判断当前这个人是否已经上班打过卡
-                user_info = AttendCard.objects.filter(userName=name, attendType="1", pushTime__range=[s_time, s_time1])
-                if not user_info:
-                    AttendCard.objects.create(userName=name)
-                    data = {
-                        "result": True,
-                        "message": name + "上班打卡成功"
-                    }
-                    return Response(data)
-                else:
-                    data = {
-                        "result": True,
-                        "message": name + "上班已经打过卡"
-                    }
-                    return Response(data)
-            else:
-                data = {
-                    "result": False,
-                    "message": "没有找到匹配的人物"
-                }
-                return Response(data)
-        # 是否在下班时间打卡范围
-        elif n_time > e_time and n_time < e_time1:
-            datas = baidu_face_search()
-            if datas["result"] is True:
-                name = datas["data"]["user_id"]
-                user_info = AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1])
-                if user_info:
-                    AttendCard.objects.create(userName=name, attendType="2")
-                    data = {
-                        "result": True,
-                        "message":  name + "下班打卡成功"
-                    }
-                    return Response(data)
-                else:
-                    data = {
-                        "result": False,
-                        "message": name + "上班时间没有打卡,请联系管理员"
-                    }
-                    return Response(data)
-
-            else:
-                data = {
-                    "result": False,
-                    "message": "没有找到匹配的人物"
-                }
-                return Response(data)
-        # 是否早退
-        elif n_time < e_time and n_time > s_time1:
-            datas = baidu_face_search()
-            if datas["result"] is True:
-                name = datas["data"]["user_id"]
-                user_info = AttendCard.objects.filter(userName=name, pushTime__range=[s_time, s_time1])
-                if user_info:
-                    AttendCard.objects.create(userName=name, attendType="2", attendState="3")
-                    data = {
-                        "result": True,
-                        "message": name + "早退打卡",
-                    }
-                    return Response(data)
-                else:
-                    data = {
-                        "result": False,
-                        "message": name + "上班时间没有打卡,请联系管理员"
-                    }
-                    return Response(data)
-
-            else:
-                data = {
-                    "result": False,
-                    "message": "没有找到匹配的人物"
-                }
-                return Response(data)
-        # 是否迟到
-        elif n_time > s_time1 and n_time < e_time:
-            datas = baidu_face_search()
-            if datas["result"] is True:
-                name = datas["data"]["user_id"]
-                user_info = AttendCard.objects.filter(userName=name, attendType="1", pushTime__range=[s_time, s_time1])
-                if user_info:
-                    data = {
-                        "result": True,
-                        "message": name + "上班已经打过卡",
-                    }
-                    return Response(data)
-                else:
-                    AttendCard.objects.create(userName=name, attendType="1", attendState="2")
-                    data = {
-                        "result": True,
-                        "message": name + "迟到打卡"
-                    }
-                    return Response(data)
-
-            else:
-                data = {
-                    "result": False,
-                    "message": "没有找到匹配的人物"
-                }
-                return Response(data)
+        pass
 
 
+# 人脸打卡
 class FaceCardView(APIView):
     def post(self, request):
         base64 = request.data["base64"]
-        user_names = []
+        data = {}
         datas = baidu_face_multi_search(base64)
         if datas["error_code"] == 0:
             user_infos = datas["result"]["face_list"]
-            for user_info in user_infos:
-                user_name = user_info["user_list"][0]["user_id"]
-                user_names.append(user_name)
-                print(user_name)
-            data = {
-                "retCode": "0000",
-                "retMsg":  "添加成功"
-            }
+            if user_infos:
+                for user_info in user_infos:
+                    user_name = user_info["user_list"][0]["user_id"]
+                    user_up = AttendCard.objects.filter(userName=user_name,
+                                                        attendType="1",
+                                                        pushTime__range=[t_time, t_time1]
+                                                        )
+                    user_down = AttendCard.objects.filter(userName=user_name,
+                                                          attendType="2",
+                                                          pushTime__range=[t_time, t_time1]
+                                                          )
+                    # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
+                    if n_time > s_time and n_time < s_time1:
+                        # 判断当前这个人是否已经上班打过卡
+                        if not user_up:
+                            AttendCard.objects.create(userName=user_name, attendType="1", attendState="1")
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "上班打卡成功"
+                            }
+                            return Response(data)
+                        else:
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "上班已经打过卡"
+                            }
+                            return Response(data)
+                            # 是否在下班时间打卡范围
+                    # 是否在下班时间打卡范围
+                    elif n_time > e_time and n_time < e_time1:
+                        if user_up and not user_down:
+                            AttendCard.objects.create(userName=user_name, attendState="1", attendType="2")
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "下班打卡成功"
+                            }
+                            return Response(data)
+                        elif user_up and user_down:
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "下班打卡成功"
+                            }
+                            return Response(data)
+                        else:  # 上班时间没有打卡
+                            AttendCard.objects.create(userName=user_name, attendType="1", attendState="2")
+                            AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "上班时间没有打卡，下班打卡成功"
+                            }
+                            return Response(data)
+                    # 是否迟到
+                    elif n_time > s_time1 and n_time < e_time:
+                        if user_up and user_down:
+                            #  上下班都已经打卡
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "已经打过卡",
+                            }
+                            return Response(data)
+                        elif user_up and not user_down:
+                            # 上班打卡，下班没打卡
+                            AttendCard.objects.create(
+                                userName=user_name,
+                                attendType="2",
+                                attendState="3"
+                            )
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "早退打卡",
+                            }
+                            return Response(data)
+                        elif not user_up and not user_down:
+                            # 上下班都没打卡，算早退
+                            AttendCard.objects.create(
+                                userName=user_name,
+                                attendType="2",
+                                attendState="3"
+                            )
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "早退打卡",
+                            }
+                            return Response(data)
+                        else:  # 上班没打卡
+                            data = {
+                                "retCode": "0000",
+                                "retMsg": user_name + "早退打卡",
+                            }
+                            return Response(data)
+                    else:
+                        data = {
+                            "retCode": "0000",
+                            "retMsg": "不在正常打卡时间范围",
+                        }
+                        return Response(data)
+            else:
+                data = {
+                    "retCode": 222207,
+                    "retMsg": "未找到匹配的用户"
+                }
+
         elif datas["error_code"] == 222207:
             data = {
                 "retCode": "222207",
@@ -161,7 +157,6 @@ class FaceCardView(APIView):
                 "retMsg": "添加成功"
             }
         return Response(data=data)
-
 
 
 # 获取考勤记录
@@ -176,7 +171,7 @@ class GetPersonList(APIView):
         end_time = datetime.datetime.now()
         user_list = []
         user_infos = AttendCard.objects.filter(is_delete=False, attendType="1", pushTime__range=[start_time, end_time]).order_by("-pushTime")
-        print(user_infos)
+
         if user_infos:
             for user_info in user_infos:
                 user_id = user_info.id
@@ -194,7 +189,7 @@ class GetPersonList(APIView):
                     "pushTime": push_time,
                 }
                 user_list.append(user_dict)
-        user_lists = pagination(1, 2, user_list)
+        user_lists = pagination(1, 10, user_list)
         data = {
             "result": True,
             "data": user_lists
