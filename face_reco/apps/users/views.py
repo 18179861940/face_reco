@@ -8,9 +8,10 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from users.models import AttendCard
+from users.models import AttendCard, UserTable
 from users.serializers import UserSerializer
 # 上下班打卡范围时间
+from utils.baidu_face_multi_search import baidu_face_multi_search
 from utils.baidu_face_search import baidu_face_search
 from utils.paginations import pagination
 
@@ -134,6 +135,32 @@ class UserCardView(APIView):
                 return Response(data)
 
 
+
+class FaceCardView(APIView):
+    def post(self, request):
+        base64 = request.data["base64"]
+        user_names = []
+        datas = baidu_face_multi_search(base64)
+        if datas["error_code"] == 0:
+            user_infos = datas["result"]["face_list"]
+            for user_info in user_infos:
+                user_name = user_info["user_list"][0]["user_id"]
+                user_names.append(user_name)
+                print(user_name)
+            data = {
+                "retCode": "0000",
+                "retMsg":  "添加成功"
+            }
+        else:
+            data = {
+                "retCode": "0000",
+                "retMsg": "添加失败"
+            }
+        return Response(data=data)
+
+
+
+# 获取考勤记录
 class GetPersonList(APIView):
     serializer_class = UserSerializer
     queryset = AttendCard.objects.all()
@@ -227,7 +254,7 @@ class GetPersonList(APIView):
                     "attend_state": attend_state,
                 }
                 user_list.append(user_dict)
-        user_lists = pagination(current_page,page_size,user_list)
+        user_lists = pagination(current_page, page_size, user_list)
         data = {
             "result": True,
             "data": user_lists
@@ -267,4 +294,78 @@ class DeleteCardRecord(APIView):
             AttendCard.objects.filter(id=user_id).update(is_delete=True)
             return Response({"result": True, "message": "删除成功"})
 
+
+# 增加员工
+class AddUserView(APIView):
+    def post(self, request):
+        """增加员工"""
+        userName = request.data["userName"]
+        userCode = request.data["userCode"]
+        sex = request.data["sex"]
+        state = request.data["state"]
+        UserTable.objects.create(
+            userName=userName,
+            userCode=userCode,
+            sex=sex,
+            state=state,
+        )
+        data = {
+            "retCode": "0000",
+            "retMsg": "添加成功"
+        }
+        return Response(data=data)
+
+
+# 查询员工数据
+class GetUserListView(APIView):
+    def post(self, request):
+        user_list = []
+        data = request.data
+        currentPage = request.data["page"]
+        rows = request.data["rows"]
+        userName = request.data["userName"]
+        userCode = request.data["userCode"]
+        sex = request.data["sex"]
+        if 'startDate' in data.keys():
+            # 开始查询时间
+            start_time = request.data["startDate"]
+        else:
+            import datetime
+            start_time = '2020-01-01'
+        if 'endDate' in data.keys():
+            # 结束查询时间
+            end_time = request.data["endDate"]
+        else:
+            import datetime
+            end_time = datetime.datetime.now()
+        user_infos = UserTable.objects.filter(
+            userName__contains=userName,
+            userCode=userCode,
+            sex=sex,
+            insertTime__range=[start_time, end_time]
+        ).order_by("insertTime")
+
+        if user_infos:
+            for user_info in user_infos:
+                user_id = user_info.id
+                user_name = user_info.userName
+                user_code = user_info.userCode
+                sex = user_info.sex
+                state = user_info.state
+                insertTime = user_info.insertTime
+                user_dict = {
+                    "id": user_id,
+                    "userName": user_name,
+                    "userCode": user_code,
+                    "sex": sex,
+                    "state": state,
+                    "insertTime": insertTime,
+                }
+                user_list.append(user_dict)
+        user_info = pagination(currentPage, rows, user_list)
+        data = {
+            "result": True,
+            "data": user_info
+        }
+        return Response(data=data)
 

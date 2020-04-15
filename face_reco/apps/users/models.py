@@ -24,7 +24,7 @@ class UserTable(models.Model):
     userCode = models.CharField(max_length=20)
     sex = models.CharField(max_length=10, verbose_name='性别',
                                    choices=(('1', '男 '), ('2', '女')), default='1')
-    attendState = models.CharField(max_length=10, verbose_name='打卡状态',
+    state = models.CharField(max_length=10, verbose_name='在职状态',
                                    choices=(('1', '在职'), ('2', '离职')), default='1')
     insertTime = models.DateTimeField(auto_now_add=True, verbose_name="录入时间")
     is_delete = models.BooleanField(default=False)  # 是否删除

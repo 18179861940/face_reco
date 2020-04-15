@@ -14,6 +14,9 @@
               <canvas id="canvasOutput" width=320 height=240 style="
                   display: inline;background-color:rgb(211, 103, 103); margin:0 auto;
                   margin-left: -20px;  margin-bottom: -7px; border-radius: 10px;"></canvas>
+              <div id="divOut" width=320 height=240 style="
+                  display: inline; margin:0 auto;
+                  margin-left: -20px;  margin-bottom: -7px; border-radius: 10px;"></div>
               <textarea class="code" style="display:none;" rows="10" cols="80" id="codeEditor" spellcheck="false"></textarea>
               <p class="err" id="errorMessage"></p>
           </div>
@@ -49,7 +52,6 @@
         let cap = new cv.VideoCapture(video);
         let faces = new cv.RectVector();
         let classifier = new cv.CascadeClassifier();
-        let faceFlag=1;
         let cardFlag=1;
         let re=0;
 
@@ -81,61 +83,42 @@
                     let point1 = new cv.Point(face.x, face.y);
                     let point2 = new cv.Point(face.x + face.width, face.y + face.height);
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
-                    faceFlag=faceFlag+1
-                    console.log("faceFlag**********",faceFlag)
-                    if(faceFlag % 15==0){
-                        // 日期作为图片名称
-                        var date=new Date();
-                        var year=date.getFullYear();
-                        var month = date.getMonth() + 1<10? "0"+(date.getMonth() + 1):date.getMonth() + 1;
-                        var day=date.getDate()<10? "0" + date.getDate():date.getDate();
-                        var hour=date.getHours();
-                        var minute=date.getMinutes();
-                        var second=date.getSeconds()<10? "0" + date.getSeconds():date.getSeconds();
-                        var nowtime=year+''+month+''+day+''+hour+''+minute+''+second+''
-                        // save image
-                        let downloadLink = document.createElement("a");
-                        downloadLink.download = nowtime +'.jpg';
-                        let canvasDownload = document.createElement('canvas');
-                        let canvasContext = canvasDownload.getContext('2d');
-                        downloadLink.href =  document.getElementById("canvasOutput").toDataURL("image/jpg");
-                        downloadLink.click();
-                        downloadLink.remove();
-                    }
-
-                }
-                cardFlag =cardFlag + 1;
-                console.log("cardFlag##########",cardFlag)
-                if(cardFlag % 35==0 && re==0){
+                    cardFlag =cardFlag + 1;
+                    console.log("******",cardFlag)
+                if(cardFlag % 5==0 && re==0){
                     // 请求人脸打卡接口
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("get","http://127.0.0.1:8000/users/register_face/");
-                    xhr.send(null);
-                    xhr.onreadystatechange = function(){
-                        if(xhr.status === 200 && xhr.readyState === 4){
-                            console.log(xhr.responseText);
-                            let jsonResponse = JSON.parse(xhr.responseText);  
-                            let result = jsonResponse["result"];
-                            console.log("result",result)
-                            if(result==true){
-                                // 页面显示提示信息
+                    var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
+                    var base64 = data.split(",")[1];
+                    $.ajax({
+                         url:"http://127.0.0.1:8000/users/reco_face/",
+                         type:"post",
+                         data:{"base64":base64},
+                         dataType:"text",
+                         async:false,
+                         success:function(data){
+                             if(data!=null){
+                              // 页面显示提示信息
+                                stry = JSON.parse(data)
                                 var tbody = document.getElementById('errorMessage'); 
                                 let odiv=document.createElement("div");
-                                odiv.innerHTML = jsonResponse["message"];
+                                odiv.innerHTML = stry["retMsg"];
                                 tbody.appendChild(odiv);
-                                odiv.style.color="red";
-                                re = 1;
-                            }else{
+                                odiv.style.color="green";
+                                re = re + 1;
+                             }else{
                                 var tbody = document.getElementById('errorMessage'); 
                                 let odiv=document.createElement("div");
-                                odiv.innerHTML = jsonResponse["message"];
+                                odiv.innerHTML = "识别失败";
                                 tbody.appendChild(odiv);
                                 odiv.style.color="red";
-                                re = 1;
-                            }
-                        }
-                    }
+                                re = re + 1;
+                             }
+
+                         }
+                     });
                 }
+                }
+
                 cv.imshow('canvasOutput', dst);
                 // schedule the next one.
                 let delay = 1000/FPS - (Date.now() - begin);
