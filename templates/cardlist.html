@@ -44,12 +44,12 @@
                 let result = xhr.responseText;
                 let jsonResponse = JSON.parse(result);
                 var tbody = document.getElementById('tbMain');  
-                let per = jsonResponse["data"]["row"];
+                let per = jsonResponse["row"];
                 for(var i = 0;i < per.length; i++){ //遍历一下json数据  
                   var trow = getDataRow(per[i]); //定义一个方法,返回tr数据  
                   tbody.appendChild(trow);  
                 } 
-                console.log("列表1",jsonResponse["data"]["row"]);
+                console.log("列表1",jsonResponse["row"]);
             }
         }
     };

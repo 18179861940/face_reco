@@ -190,11 +190,7 @@ class GetPersonList(APIView):
                 }
                 user_list.append(user_dict)
         user_lists = pagination(1, 10, user_list)
-        data = {
-            "result": True,
-            "data": user_lists
-        }
-        return Response(data=data)
+        return Response(data=user_lists)
 
     # 获取考勤记录
     def post(self, request):
@@ -259,39 +255,6 @@ class GetPersonList(APIView):
             "data": user_lists
         }
         return Response(data=data)
-
-
-# 修改打卡记录（暂时谁都可以修改，没有管理员，但是只能修改打卡时间）
-class UpdateCardList(APIView):
-    serializer_class = UserSerializer
-    queryset = AttendCard.objects.all()
-
-    def post(self,request):
-        # 获取要修改的用户id（唯一）
-        user_id = request.data["user_id"]
-        start_time = request.data["start_time"]
-        # 结束时间
-        end_time = request.data["end_time"]
-        user_info = AttendCard.objects.filter(id=user_id)
-        if not user_info:
-            return Response({"result": False, "message": "没有找到该用户的信息"})
-        else:
-            AttendCard.objects.filter(id=user_id).update(pushTime=start_time, pushEndTime=end_time)
-            return Response({"result": True, "message": "修改成功"})
-
-
-class DeleteCardRecord(APIView):
-    serializer_class = UserSerializer
-    queryset = AttendCard.objects.all()
-    def post(self,request):
-        # 获取要修改的用户id（唯一）
-        user_id = request.data["user_id"]
-        user_info = AttendCard.objects.filter(id=user_id)
-        if not user_info:
-            return Response({"result": False, "message": "没有找到该用户的信息"})
-        else:
-            AttendCard.objects.filter(id=user_id).update(is_delete=True)
-            return Response({"result": True, "message": "删除成功"})
 
 
 # 增加员工
@@ -362,9 +325,6 @@ class GetUserListView(APIView):
                 }
                 user_list.append(user_dict)
         user_info = pagination(currentPage, rows, user_list)
-        data = {
-            "result": True,
-            "data": user_info
-        }
-        return Response(data=data)
+
+        return Response(data=user_info)
 
