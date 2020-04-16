@@ -11,7 +11,7 @@ class AttendCard(models.Model):
     attendType = models.CharField(max_length=10, verbose_name='打卡类型', choices=(('1', '上班打卡'), ('2', '下班打卡')),
                                   default='1')
     attendState = models.CharField(max_length=10, verbose_name='打卡状态',
-                                   choices=(('1', '正常 '), ('2', '迟到'), ('3', '早退')), default='1')
+                                   choices=(('1', '正常 '), ('2', '迟到'), ('3', '早退'), ('4', '缺卡')), default='1')
     pushTime = models.DateTimeField(auto_now_add=True, verbose_name="打卡时间")
     is_delete = models.BooleanField(default=False)  # 是否删除
 

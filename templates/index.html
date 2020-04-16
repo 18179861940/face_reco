@@ -93,7 +93,7 @@
                         var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
                         var base64 = data.split(",")[1];
                         $.ajax({
-                             url:"http://127.0.0.1:8000/users/reco_face/",
+                             url:"http://127.0.0.1:8000/users/register_face/",
                              type:"post",
                              data:{"base64":base64},
                              dataType:"text",
@@ -102,8 +102,33 @@
                                  if(data!=null){
                                   // 页面显示提示信息
                                     stry = JSON.parse(data)
+                                    let len = stry.length
+                                    let myArray=[]
+                                    console.log("********",stry)
                                     var tbody = document.getElementById('errorMessage'); 
-                                    tbody.innerHTML = stry["retMsg"];
+                                    for(i=0;i<len;i++){
+                                        userName = stry[i]["userName"]
+                                        attendType = stry[i]["attendType"]
+                                        attendState = stry[i]["attendState"]
+                                        if(attendType=="1"){
+                                            att = "上班打卡"
+                                        }else{
+                                            att = "下班打卡"
+                                        }
+                                        if(attendState=="1"){
+                                            stat = "正常"
+                                        }else if(attendState=="2"){
+                                            stat = "迟到"
+                                        }else if(attendState=="3"){
+                                            stat = "早退"
+                                        }else{
+                                            stat = "缺卡"
+                                        }
+                                        outText = userName + att + stat
+                                        myArray.push(outText)
+                                    }
+
+                                    tbody.innerHTML = myArray;
                                     tbody.style.color="green";
                                  }else{
                                     var tbody = document.getElementById('errorMessage'); 
