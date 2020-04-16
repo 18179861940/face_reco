@@ -28,14 +28,6 @@ t_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '23:5
 n_time = datetime.datetime.now()
 
 
-class UserCardView(APIView):
-    serializer_class = UserSerializer
-    queryset = AttendCard.objects.all()
-    # get请求方式
-    def get(self, request):
-        pass
-
-
 # 人脸打卡
 class FaceCardView(APIView):
     def post(self, request):
@@ -50,58 +42,54 @@ class FaceCardView(APIView):
                     user_up = AttendCard.objects.filter(userName=user_name,
                                                         attendType="1",
                                                         pushTime__range=[t_time, t_time1]
-                                                        )
+                                                        ).first()
                     user_down = AttendCard.objects.filter(userName=user_name,
                                                           attendType="2",
                                                           pushTime__range=[t_time, t_time1]
-                                                          )
+                                                          ).first()
+                    print("user_up", user_up)
                     # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
                     if n_time > s_time and n_time < s_time1:
                         # 判断当前这个人是否已经上班打过卡
                         if not user_up:
                             AttendCard.objects.create(userName=user_name, attendType="1", attendState="1")
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "上班打卡成功"
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "1",
                             }
-                            return Response(data)
-                        else:
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "上班已经打过卡"
-                            }
-                            return Response(data)
                             # 是否在下班时间打卡范围
                     # 是否在下班时间打卡范围
                     elif n_time > e_time and n_time < e_time1:
                         if user_up and not user_down:
                             AttendCard.objects.create(userName=user_name, attendState="1", attendType="2")
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "下班打卡成功"
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                         elif user_up and user_down:
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "下班打卡成功"
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                         else:  # 上班时间没有打卡
                             AttendCard.objects.create(userName=user_name, attendType="1", attendState="2")
                             AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "上班时间没有打卡，下班打卡成功"
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                     # 是否迟到
                     elif n_time > s_time1 and n_time < e_time:
                         if user_up and user_down:
                             #  上下班都已经打卡
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "已经打过卡",
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": user_down.pushTime,
+                                "attendType": "",
                             }
                             return Response(data)
                         elif user_up and not user_down:
@@ -111,11 +99,11 @@ class FaceCardView(APIView):
                                 attendType="2",
                                 attendState="3"
                             )
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "早退打卡",
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                         elif not user_up and not user_down:
                             # 上下班都没打卡，算早退
                             AttendCard.objects.create(
@@ -123,39 +111,38 @@ class FaceCardView(APIView):
                                 attendType="2",
                                 attendState="3"
                             )
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "早退打卡",
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                         else:  # 上班没打卡
-                            data = {
-                                "retCode": "0000",
-                                "retMsg": user_name + "早退打卡",
+                            clockData = {
+                                "userName": user_name,
+                                "pushTime": n_time,
+                                "attendType": "2",
                             }
-                            return Response(data)
                     else:
-                        data = {
-                            "retCode": "0000",
-                            "retMsg": "不在正常打卡时间范围",
+                        clockData = {
+                            "userName": user_name,
+                            "pushTime": '',
+                            "attendType": "",
                         }
-                        return Response(data)
             else:
-                data = {
-                    "retCode": 222207,
-                    "retMsg": "未找到匹配的用户"
+                clockData = {
+                    "userName": ' ',
+                    "pushTime": '',
+                    "attendType": "",
                 }
-
-        elif datas["error_code"] == 222207:
-            data = {
-                "retCode": "222207",
-                "retMsg": "未找到匹配的用户"
-            }
         else:
             data = {
                 "retCode": "0000",
                 "retMsg": "添加成功"
             }
+        result = {
+            "attendData": datas,
+            "clockData": clockData
+        }
         return Response(data=data)
 
 
@@ -219,7 +206,7 @@ class GetPersonList(APIView):
         if "userName" in data.keys():
             name = request.data["userName"]
         else:
-            name = None
+            name = ''
         if "attendType" in data.keys():
             attendType = request.data["attendType"]
         else:
@@ -242,19 +229,15 @@ class GetPersonList(APIView):
                 push_time = user_info.pushTime
                 attend_state = user_info.attendState
                 user_dict = {
-                    "user_id": user_id,
-                    "user_name": user_name,
-                    "user_code": user_code,
-                    "push_time": push_time,
-                    "attend_state": attend_state,
+                    "id": user_id,
+                    "userName": user_name,
+                    "userCode": user_code,
+                    "pushTime": push_time,
+                    "attendState": attend_state,
                 }
                 user_list.append(user_dict)
         user_lists = pagination(current_page, page_size, user_list)
-        data = {
-            "result": True,
-            "data": user_lists
-        }
-        return Response(data=data)
+        return Response(data=user_lists)
 
 
 # 增加员工
@@ -264,7 +247,10 @@ class AddUserView(APIView):
         userName = request.data["userName"]
         userCode = request.data["userCode"]
         sex = request.data["sex"]
-        state = request.data["state"]
+        if "state" in request.data.keys():
+            state = request.data["state"]
+        else:
+            state = "1"
         UserTable.objects.create(
             userName=userName,
             userCode=userCode,
@@ -285,9 +271,6 @@ class GetUserListView(APIView):
         data = request.data
         currentPage = request.data["page"]
         rows = request.data["rows"]
-        userName = request.data["userName"]
-        userCode = request.data["userCode"]
-        sex = request.data["sex"]
         if 'startDate' in data.keys():
             # 开始查询时间
             start_time = request.data["startDate"]
@@ -300,6 +283,18 @@ class GetUserListView(APIView):
         else:
             import datetime
             end_time = datetime.datetime.now()
+        if 'userName' in data.keys():
+            userName = request.data["userName"]
+        else:
+            userName = ''
+        if 'userCode' in data.keys():
+            userCode = request.data["userCode"]
+        else:
+            userCode = ''
+        if 'sex' in data.keys():
+            sex = request.data["sex"]
+        else:
+            sex = '1'
         user_infos = UserTable.objects.filter(
             userName__contains=userName,
             userCode=userCode,
@@ -320,8 +315,8 @@ class GetUserListView(APIView):
                     "userName": user_name,
                     "userCode": user_code,
                     "sex": sex,
-                    "state": state,
                     "insertTime": insertTime,
+                    "state": state,
                 }
                 user_list.append(user_dict)
         user_info = pagination(currentPage, rows, user_list)

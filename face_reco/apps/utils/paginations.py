@@ -23,6 +23,6 @@ def pagination(currentPage, pageSize, list_data):
         'pageSize': int(len(paginator.page(paginator.num_pages))),  # 当前页面数据条数
         'total': total,  # 总条数
         'pageAmount': pageAmount,  # 总页数
-        'row': result
+        'rows': result
     }
     return data
