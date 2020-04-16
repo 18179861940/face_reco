@@ -2,46 +2,93 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>人脸打卡</title>
-    <style>
-        button{
-            background-color: #008CBA;
-            border: none;
-            color: white;
-            font-size: 16px;
-            padding: 12px 20px;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 8px;
-            display: inline-block;
-        }
-    </style>
+    <title>attend</title>
+    <!--<link rel="stylesheet" href="../css/index.css" media="all"/>-->
+
+
+    <!--<link rel="stylesheet" href="../static/css/index.css"/>
+    <script type="text/javascript" src="../static/js/ajax.js"></script>
+    <script type="text/javascript" src="../static/js/access_token.js"></script>
+    <script type="text/javascript" src="../static/js/index.js"></script>-->
 </head>
+<style>
+#videoInput{
+    width: 50%;
+    height: 50%;
+   <!-- margin: 50px auto;-->
+    background-color: aquamarine;
+    display: block;
+    <!--display:none !important;-->
+}
+#canvasOutput{
+    width: 100%;
+    height: 100%;
+    <!--margin: 5px auto;-->
+    background-color: aquamarine;
+    display: block;
+    <!--display:none !important;-->
+}
+
+html body {
+    height: 750px;
+    margin: 5px;
+}
+.wrapper {
+    width: 80%;
+    margin: 0 auto; /* 上下为0 左右auto*/
+    text-align: center;
+    height: 100%;
+    <!--background-color: #FF3333;-->
+    font-size: 15px;
+}
+
+.content * {
+    display: inline;
+}
+
+.content .primary {
+    width: 70%;
+    float: left;
+    display: inline;
+    background-color: #0099FF;
+}
+
+.content .secondary {
+    width: 30%;
+    height:720px;
+    float: right;
+    display: inline;
+    background-color: #DDDDDD;
+}
+
+</style>
 <body>
-    <div style=" width:1000px; height:100%; margin:0 auto; padding-top: 20px;">
-          <div  id="canvas_container" style="display: inline">
-            <!-- 画面显示canvas -->
-              <video id="videoInput" style="
-                  display: none;" width=320 height=240>
-              </video>
-              <div style="display:inline;">
-                  <canvas id="canvasOutput" width=800 height=600 style="background-color:rgb(211, 103, 103);
-                   margin:0 auto; border-radius: 10px;"></canvas>
-              </div>
-              <div style="display:inline; height:100%; position: relative; top: -570px;left: 10px; justify-content: center ">
-                <div style="display:inline; text-align:center; margin:0 auto; width:90%">
-                  <button id="openCameraBt">
-                      打开摄像头
+
+<div class="wrapper">
+    <div class="content">
+
+        <div class="primary">
+
+          <canvas id="canvasOutput" width="1000px" height="900px"></canvas>
+
+
+        </div>
+
+        <div class="secondary">
+              <button id="openCameraBt">
+                      <span>打开摄像头</span>
                   </button>
-                </div>
-                <p class="err" style="position: relative;top: 15px;left: 805px;" id="errorMessage"></p>
-              </div>
-
-          </div>
-          <textarea class="code" style="display:none;" rows="10" cols="80" id="codeEditor" spellcheck="false"></textarea>
-
+            <video id="videoInput" width="100%" height="900px"></video>
+            <textarea class="code" style="display:none;" rows="10" cols="80" id="codeEditor" spellcheck="false"></textarea>
+           <!--上班打卡&nbsp;&nbsp;李杰&nbsp;&nbsp;2020-04-15 09:00:00-->
+        </div>
+        <div class="clear"></div>
     </div>
+</div>
 
+
+<!--<script type="text/javascript" src="../js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../js/attend.js"></script>-->
 <script src="js/utils.js"></script>
 <script src="js/jquery-3.4.1.min.js"></script>
 <script id="codeSnippet" type="text/code-snippet">
@@ -85,7 +132,7 @@
                     cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
                     cardFlag =cardFlag + 1;
                     console.log("******",cardFlag)
-                    if(cardFlag % 5==0){
+                   <!-- if(cardFlag % 5==0){
                         // 请求人脸打卡接口
                         var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
                         var base64 = data.split(",")[1];
@@ -96,36 +143,11 @@
                              dataType:"text",
                              async:false,
                              success:function(data){
-                                 if(data!=null){
+                                if(data!=null){
                                   // 页面显示提示信息
                                     stry = JSON.parse(data)
-                                    let len = stry.length
-                                    let myArray=[]
-                                    console.log("********",stry)
                                     var tbody = document.getElementById('errorMessage'); 
-                                    for(i=0;i<len;i++){
-                                        userName = stry[i]["userName"]
-                                        attendType = stry[i]["attendType"]
-                                        attendState = stry[i]["attendState"]
-                                        if(attendType=="1"){
-                                            att = "上班打卡"
-                                        }else{
-                                            att = "下班打卡"
-                                        }
-                                        if(attendState=="1"){
-                                            stat = "正常"
-                                        }else if(attendState=="2"){
-                                            stat = "迟到"
-                                        }else if(attendState=="3"){
-                                            stat = "早退"
-                                        }else{
-                                            stat = "缺卡"
-                                        }
-                                        outText = userName + att + stat
-                                        myArray.push(outText)
-                                    }
-
-                                    tbody.innerHTML = myArray;
+                                    tbody.innerHTML = "打卡成功";
                                     tbody.style.color="green";
                                  }else{
                                     var tbody = document.getElementById('errorMessage'); 
@@ -136,7 +158,7 @@
                              }
 
                          });
-                    }
+                    }-->
                 }
 
                 cv.imshow('canvasOutput', dst);
@@ -195,5 +217,6 @@
 
 </script>
 </body>
+</html>
 
 </html>
