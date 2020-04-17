@@ -26,11 +26,9 @@ def baidu_face_multi_search(base64):
     # 请求地址
     request_url = request_url + "?access_token=" + access_token
     # 请求头
-    headers = {'content-Type': 'application/json',
-               'Connection': 'close'
-               }
+    headers = {'content-Type': 'application/json'}
     # 响应
-    response = requests.post(request_url, data=params, headers=headers,verify=False)
+    response = requests.post(request_url, data=params, headers=headers)
     json = response.json()
     return json
 
