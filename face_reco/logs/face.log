@@ -1,0 +1,9 @@
+INFO 2020-04-17 10:09:32,925 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-17 10:09:39,836 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-17 10:14:44,474 basehttp 157 "POST /users/register_face/ HTTP/1.1" 200 97
+INFO 2020-04-17 10:14:46,833 basehttp 157 "POST /users/register_face/ HTTP/1.1" 200 97
+INFO 2020-04-17 11:50:24,337 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-17 11:50:34,176 basehttp 157 "POST /users/register_face/ HTTP/1.1" 200 97
+INFO 2020-04-17 17:51:20,029 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-17 17:56:31,529 basehttp 157 "POST /users/register_face/ HTTP/1.1" 200 97
+INFO 2020-04-17 17:56:35,231 basehttp 157 "POST /users/register_face/ HTTP/1.1" 200 97

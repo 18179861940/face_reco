@@ -28,13 +28,13 @@
                   <canvas id="canvasOutput" width=800 height=600 style="background-color:rgb(211, 103, 103);
                    margin:0 auto; border-radius: 10px;"></canvas>
               </div>
-              <div style="display:inline; height:100%; position: relative; top: -570px;left: 10px; justify-content: center ">
-                <div style="display:inline; text-align:center; margin:0 auto; width:90%">
+              <div style="display:inline; height:100%; position: relative; top: -570px;left: 10px;">
+                <div style="display:inline;">
                   <button id="openCameraBt">
                       打开摄像头
                   </button>
                 </div>
-                <p class="err" style="position: relative;top: 15px;left: 805px;" id="errorMessage"></p>
+                <div class="err" style="position: relative;top: 15px;left: 805px;height: 100px" id="errorMessage"></div>
               </div>
 
           </div>
@@ -122,6 +122,9 @@
                                             stat = "缺卡"
                                         }
                                         outText = userName + att + stat
+                                        if(userName == ""){
+                                            outText = "没有找到匹配人物"
+                                        }
                                         myArray.push(outText)
                                     }
 

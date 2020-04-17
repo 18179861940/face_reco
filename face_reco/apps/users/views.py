@@ -1,7 +1,4 @@
 import datetime
-import os
-
-import cv2
 from django.shortcuts import render
 
 # Create your views here.
@@ -36,194 +33,191 @@ n_time = datetime.datetime.now()
 class FaceCardView(APIView):
     def post(self, request):
         base64 = request.data["base64"]
-        datas = baidu_face_multi_search(base64)
-        clock_list = []
-        if datas["error_code"] == 0:
-            user_infos = datas["result"]["face_list"]
-            if user_infos:
-                for user_info in user_infos:
+        try:
+            datas = baidu_face_multi_search(base64)
+            clock_list = []
+            if datas["error_code"] == 0:
+                user_infos = datas["result"]["face_list"]
+                if user_infos:
+                    for user_info in user_infos:
 
-                    user_list = user_info["user_list"]
-                    if user_list == []:
-                        pass
-                    else:
-                        user_name = user_info["user_list"][0]["user_id"]
-                        user_up = AttendCard.objects.filter(userName=user_name,
-                                                            attendType="1",
-                                                            pushTime__range=[t_time, t_time1]
-                                                            ).first()
-                        user_down = AttendCard.objects.filter(userName=user_name,
-                                                              attendType="2",
-                                                              pushTime__range=[t_time, t_time1]
-                                                              ).first()
-                        # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
-                        if n_time > s_time and n_time < s_time1:
-                            # 判断当前这个人是否已经上班打过卡
-                            if not user_up:
-                                AttendCard.objects.create(userName=user_name, attendType="1", attendState="1")
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "1",
-                                    "attendState": "1"
-                                }
-                                clock_list.append(clockData)
-                            else:   # 上班已经打过卡
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": user_up.pushTime,
-                                    "attendType": "1",
-                                    "attendState": "1"
-                                }
-                                clock_list.append(clockData)
-                                # 是否在下班时间打卡范围
-                        # 是否在下班时间打卡范围
-                        elif n_time > e_time and n_time < e_time1:
-                            if user_up and not user_down:
-                                AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "2",
-                                    "attendState": "1"
-                                }
-                                clock_list.append(clockData)
-                            elif user_up and user_down:
-                                if user_down.attendState == "1":   # 下班正常打过卡
-                                    # 判断打卡时间有没有超过两分钟
-                                    minute = minNums(user_down.pushTime, n_time)
-                                    if minute > 2:
+                        user_list = user_info["user_list"]
+                        if user_list == []:
+                            pass
+                        else:
+                            user_name = user_info["user_list"][0]["user_id"]
+                            user_up = AttendCard.objects.filter(userName=user_name,
+                                                                attendType="1",
+                                                                pushTime__range=[t_time, t_time1]
+                                                                ).first()
+                            user_down = AttendCard.objects.filter(userName=user_name,
+                                                                  attendType="2",
+                                                                  pushTime__range=[t_time, t_time1]
+                                                                  ).first()
+                            # 判断当前时间是否在上班打卡时间范围内(1.正常打卡 2.打过卡后又识别了就不能再打卡了)
+                            if n_time > s_time and n_time < s_time1:
+                                # 判断当前这个人是否已经上班打过卡
+                                if not user_up:
+                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="1")
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": n_time,
+                                        "attendType": "1",
+                                        "attendState": "1"
+                                    }
+                                    clock_list.append(clockData)
+                                else:   # 上班已经打过卡
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": user_up.pushTime,
+                                        "attendType": "1",
+                                        "attendState": "1"
+                                    }
+                                    clock_list.append(clockData)
+                                    # 是否在下班时间打卡范围
+                            # 是否在下班时间打卡范围
+                            elif n_time > e_time and n_time < e_time1:
+                                if user_up and not user_down:
+                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": n_time,
+                                        "attendType": "2",
+                                        "attendState": "1"
+                                    }
+                                    clock_list.append(clockData)
+                                elif user_up and user_down:
+                                    if user_down.attendState == "1":   # 下班正常打过卡
+                                        # 判断打卡时间有没有超过两分钟
+                                        minute = minNums(user_down.pushTime, n_time)
+                                        if minute > 2:
+                                            AttendCard.objects.filter(userName=user_name,
+                                                                      attendType="2",
+                                                                      attendState="1",
+                                                                      pushTime__range=[t_time, t_time1]
+                                                                      ).update(
+                                                pushTime=n_time,
+                                            )
+                                            clockData = {
+                                                "userName": user_name,
+                                                "pushTime": n_time,
+                                                "attendType": "2",
+                                                "attendState": "1"
+                                            }
+                                            clock_list.append(clockData)
+                                        else:
+                                            clockData = {
+                                                "userName": user_name,
+                                                "pushTime": user_down.pushTime,
+                                                "attendType": "2",
+                                                "attendState": "1"
+                                            }
+                                            clock_list.append(clockData)
+                                    elif user_down.attendState == "3":  # 下班早退打卡
                                         AttendCard.objects.filter(userName=user_name,
                                                                   attendType="2",
-                                                                  attendState="1",
+                                                                  attendState="3",
                                                                   pushTime__range=[t_time, t_time1]
                                                                   ).update(
                                             pushTime=n_time,
+                                            attendState="1"
                                         )
                                         clockData = {
                                             "userName": user_name,
                                             "pushTime": n_time,
                                             "attendType": "2",
-                                            "attendState": "1"
+                                            "attendState": "1",
+
                                         }
                                         clock_list.append(clockData)
-                                    else:
-                                        clockData = {
-                                            "userName": user_name,
-                                            "pushTime": user_down.pushTime,
-                                            "attendType": "2",
-                                            "attendState": "1"
-                                        }
-                                        clock_list.append(clockData)
-                                elif user_down.attendState == "3":  # 下班早退打卡
-                                    AttendCard.objects.filter(userName=user_name,
-                                                              attendType="2",
-                                                              attendState="3",
-                                                              pushTime__range=[t_time, t_time1]
-                                                              ).update(
-                                        pushTime=n_time,
-                                        attendState="1"
+                                else:  # 上班时间没有打卡，上班时间缺卡
+                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="4", pushTime=s_time1)
+                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": n_time,
+                                        "attendType": "2",
+                                        "attendState": "1"
+                                    }
+                                    clock_list.append(clockData)
+                            # 迟到打卡范围
+                            elif n_time > s_time1 and n_time < m_time:
+                                # 如果上班打过卡，则不再打卡
+                                if user_up:
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": user_up.pushTime,
+                                        "attendType": "1",
+                                        "attendState": user_up.attendState
+                                    }
+                                    clock_list.append(clockData)
+                                else:
+                                    AttendCard.objects.create(
+                                        userName=user_name,
+                                        attendType="1",
+                                        attendState="2"
+                                    )
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": n_time,
+                                        "attendType": "1",
+                                        "attendState": "2"
+                                    }
+                                    clock_list.append(clockData)
+                            # 早退打卡范围
+                            elif n_time > m_time and n_time < e_time:
+                                # 上班没有打卡，则上班打卡缺卡
+                                if user_up:
+                                    AttendCard.objects.create(
+                                        userName=user_name,
+                                        attendType="2",
+                                        attendState="3"
                                     )
                                     clockData = {
                                         "userName": user_name,
                                         "pushTime": n_time,
                                         "attendType": "2",
-                                        "attendState": "1",
-
+                                        "attendState": "3"
                                     }
                                     clock_list.append(clockData)
-                            else:  # 上班时间没有打卡，上班时间缺卡
-                                AttendCard.objects.create(userName=user_name, attendType="1", attendState="4", pushTime=s_time1)
-                                AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "2",
-                                    "attendState": "1"
-                                }
-                                clock_list.append(clockData)
-                        # 迟到打卡范围
-                        elif n_time > s_time1 and n_time < m_time:
-                            # 如果上班打过卡，则不再打卡
-                            if user_up:
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": user_up.pushTime,
-                                    "attendType": "1",
-                                    "attendState": user_up.attendState
-                                }
-                                clock_list.append(clockData)
+                                else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
+                                    AttendCard.objects.create(
+                                        userName=user_name,
+                                        attendType="1",
+                                        attendState="4"
+                                    )
+                                    AttendCard.objects.create(
+                                        userName=user_name,
+                                        attendType="2",
+                                        attendState="3"
+                                    )
+                                    clockData = {
+                                        "userName": user_name,
+                                        "pushTime": n_time,
+                                        "attendType": "2",
+                                        "attendState": "3"
+                                    }
+                                    clock_list.append(clockData)
                             else:
-                                AttendCard.objects.create(
-                                    userName=user_name,
-                                    attendType="1",
-                                    attendState="2"
-                                )
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "1",
-                                    "attendState": "2"
+                                clock_list = {
+                                    "success": False,
+                                    "message": "打卡失败"
                                 }
-                                clock_list.append(clockData)
-                        # 早退打卡范围
-                        elif n_time > m_time and n_time < e_time:
-                            # 上班没有打卡，则上班打卡缺卡
-                            if user_up:
-                                AttendCard.objects.create(
-                                    userName=user_name,
-                                    attendType="2",
-                                    attendState="3"
-                                )
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "2",
-                                    "attendState": "3"
-                                }
-                                clock_list.append(clockData)
-                            else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
-                                AttendCard.objects.create(
-                                    userName=user_name,
-                                    attendType="1",
-                                    attendState="4"
-                                )
-                                AttendCard.objects.create(
-                                    userName=user_name,
-                                    attendType="2",
-                                    attendState="3"
-                                )
-                                clockData = {
-                                    "userName": user_name,
-                                    "pushTime": n_time,
-                                    "attendType": "2",
-                                    "attendState": "3"
-                                }
-                                clock_list.append(clockData)
-                        else:
-                            clockData = {
-                                "userName": user_name,
-                                "pushTime": '',
-                                "attendType": "",
-                                "attendState": ""
-                            }
-                            clock_list.append(clockData)
+                else:
+                    clock_list = {
+                        "success": False,
+                        "message": "打卡失败"
+                    }
             else:
-                clockData = {
-                    "userName": ' ',
-                    "pushTime": '',
-                    "attendType": "",
-                    "attendState": ""
+                clock_list = {
+                    "success": False,
+                    "message": "打卡失败"
                 }
-                clock_list.append(clockData)
-        else:
-            clockData = {
-                "userName": "",
-                "pushTime": "",
-                "attendType": "",
-                "attendState": ""
+        except:
+            clock_list = {
+                "success": False,
+                "message": "打卡失败"
             }
-            clock_list.append(clockData)
 
         return Response(data=clock_list)
 
@@ -239,26 +233,31 @@ class GetPersonList(APIView):
         start_time = '2020-01-01'
         end_time = datetime.datetime.now()
         user_list = []
-        user_infos = AttendCard.objects.filter(is_delete=False, attendType="1", pushTime__range=[start_time, end_time]).order_by("-pushTime")
-
-        if user_infos:
-            for user_info in user_infos:
-                user_id = user_info.id
-                user_name = user_info.userName
-                user_code = user_info.userCode
-                user_type = user_info.attendType
-                push_time = user_info.pushTime
-                attend_state = user_info.attendState
-                user_dict = {
-                    "id": user_id,
-                    "userName": user_name,
-                    "userCode": user_code,
-                    "attendType": user_type,
-                    "attendState": attend_state,
-                    "pushTime": push_time,
-                }
-                user_list.append(user_dict)
-        user_lists = pagination(1, 10, user_list)
+        try:
+            user_infos = AttendCard.objects.filter(is_delete=False, attendType="1", pushTime__range=[start_time, end_time]).order_by("-pushTime")
+            if user_infos:
+                for user_info in user_infos:
+                    user_id = user_info.id
+                    user_name = user_info.userName
+                    user_code = user_info.userCode
+                    user_type = user_info.attendType
+                    push_time = user_info.pushTime
+                    attend_state = user_info.attendState
+                    user_dict = {
+                        "id": user_id,
+                        "userName": user_name,
+                        "userCode": user_code,
+                        "attendType": user_type,
+                        "attendState": attend_state,
+                        "pushTime": push_time,
+                    }
+                    user_list.append(user_dict)
+            user_lists = pagination(1, 10, user_list)
+        except:
+            user_lists = {
+                "success": False,
+                "message": "查询失败"
+            }
         return Response(data=user_lists)
 
     # 获取考勤记录
@@ -297,28 +296,34 @@ class GetPersonList(APIView):
             attendState = request.data["attendState"]
         else:
             attendState = '1'
-        user_infos = AttendCard.objects.filter(is_delete=False,
-                                               userName__contains=name,
-                                               pushTime__range=[start_time, end_time],
-                                               attendType=attendType,
-                                               attendState=attendState
-                                               ).order_by("-pushTime")
-        if user_infos:
-            for user_info in user_infos:
-                user_id = user_info.id
-                user_name = user_info.userName
-                user_code = user_info.userCode
-                push_time = user_info.pushTime
-                attend_state = user_info.attendState
-                user_dict = {
-                    "id": user_id,
-                    "userName": user_name,
-                    "userCode": user_code,
-                    "pushTime": push_time,
-                    "attendState": attend_state,
-                }
-                user_list.append(user_dict)
-        user_lists = pagination(current_page, page_size, user_list)
+        try:
+            user_infos = AttendCard.objects.filter(is_delete=False,
+                                                   userName__contains=name,
+                                                   pushTime__range=[start_time, end_time],
+                                                   attendType=attendType,
+                                                   attendState=attendState
+                                                   ).order_by("-pushTime")
+            if user_infos:
+                for user_info in user_infos:
+                    user_id = user_info.id
+                    user_name = user_info.userName
+                    user_code = user_info.userCode
+                    push_time = user_info.pushTime
+                    attend_state = user_info.attendState
+                    user_dict = {
+                        "id": user_id,
+                        "userName": user_name,
+                        "userCode": user_code,
+                        "pushTime": push_time,
+                        "attendState": attend_state,
+                    }
+                    user_list.append(user_dict)
+            user_lists = pagination(current_page, page_size, user_list)
+        except:
+            user_lists = {
+                "success": False,
+                "message": "查询失败"
+            }
         return Response(data=user_lists)
 
 
@@ -333,16 +338,23 @@ class AddUserView(APIView):
             state = request.data["state"]
         else:
             state = "1"
-        UserTable.objects.create(
-            userName=userName,
-            userCode=userCode,
-            sex=sex,
-            state=state,
-        )
-        data = {
-            "retCode": "0000",
-            "retMsg": "添加成功"
-        }
+        try:
+            UserTable.objects.create(
+                userName=userName,
+                userCode=userCode,
+                sex=sex,
+                state=state,
+            )
+            data = {
+                "success": True,
+                "message": "保存成功"
+            }
+        except:
+            data = {
+                "success": False,
+                "message": "添加失败"
+            }
+
         return Response(data=data)
 
 
@@ -377,30 +389,35 @@ class GetUserListView(APIView):
             sex = request.data["sex"]
         else:
             sex = '1'
-        user_infos = UserTable.objects.filter(
-            userName__contains=userName,
-            userCode__contains=userCode,
-            sex=sex,
-            insertTime__range=[start_time, end_time]
-        ).order_by("insertTime")
-        if user_infos:
-            for user_info in user_infos:
-                user_id = user_info.id
-                user_name = user_info.userName
-                user_code = user_info.userCode
-                sex = user_info.sex
-                state = user_info.state
-                insertTime = user_info.insertTime
-                user_dict = {
-                    "id": user_id,
-                    "userName": user_name,
-                    "userCode": user_code,
-                    "sex": sex,
-                    "insertTime": insertTime,
-                    "state": state,
-                }
-                user_list.append(user_dict)
-        user_info = pagination(currentPage, rows, user_list)
-
+        try:
+            user_infos = UserTable.objects.filter(
+                userName__contains=userName,
+                userCode__contains=userCode,
+                sex=sex,
+                insertTime__range=[start_time, end_time]
+            ).order_by("insertTime")
+            if user_infos:
+                for user_info in user_infos:
+                    user_id = user_info.id
+                    user_name = user_info.userName
+                    user_code = user_info.userCode
+                    sex = user_info.sex
+                    state = user_info.state
+                    insertTime = user_info.insertTime
+                    user_dict = {
+                        "id": user_id,
+                        "userName": user_name,
+                        "userCode": user_code,
+                        "sex": sex,
+                        "insertTime": insertTime,
+                        "state": state,
+                    }
+                    user_list.append(user_dict)
+            user_info = pagination(currentPage, rows, user_list)
+        except:
+            user_info = {
+                "success": False,
+                "message": "查询失败"
+            }
         return Response(data=user_info)
 
