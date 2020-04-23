@@ -1,6 +1,11 @@
+import base64
 import datetime
+from utils.openCamera import generate
+import cv2
+from django.http import StreamingHttpResponse
 from django.shortcuts import render
-
+from PIL import Image
+from io import BytesIO
 # Create your views here.
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,7 +23,7 @@ s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:29
 # 上下班打卡分界时间
 m_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '12:30', '%Y-%m-%d%H:%M')
 # 下班打卡时间范围
-e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '15:00', '%Y-%m-%d%H:%M')
+e_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '18:00', '%Y-%m-%d%H:%M')
 e_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '23:59', '%Y-%m-%d%H:%M')
 
 # 当天日期时间
@@ -167,7 +172,7 @@ class FaceCardView(APIView):
                             # 早退打卡范围
                             elif n_time > m_time and n_time < e_time:
                                 # 上班没有打卡，则上班打卡缺卡
-                                if user_up:
+                                if user_up and not user_down:
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="2",
@@ -180,6 +185,24 @@ class FaceCardView(APIView):
                                         "attendState": "3"
                                     }
                                     clock_list.append(clockData)
+                                elif user_up and user_down:
+                                    # 判断打卡时间有没有超过两分钟
+                                    minute = minNums(user_down.pushTime, n_time)
+                                    if minute > 2:
+                                        AttendCard.objects.filter(userName=user_name,
+                                                                  attendType="2",
+                                                                  attendState="3",
+                                                                  pushTime__range=[t_time, t_time1]
+                                                                  ).update(
+                                            pushTime=n_time,
+                                        )
+                                        clockData = {
+                                            "userName": user_name,
+                                            "pushTime": n_time,
+                                            "attendType": "2",
+                                            "attendState": "3"
+                                        }
+                                        clock_list.append(clockData)
                                 else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
                                     AttendCard.objects.create(
                                         userName=user_name,
@@ -220,6 +243,70 @@ class FaceCardView(APIView):
             }
 
         return Response(data=clock_list)
+
+
+# 测试
+class OpenCamera(APIView):
+    def get(self, request):
+        return StreamingHttpResponse(generate(), content_type="multipart/x-mixed-replace; boundary=frame")
+
+
+# 打开ip网络摄像头
+class OpenVideo(APIView):
+    def get(self, request):
+        # 调用人脸识别分类器
+        faceCascade = cv2.CascadeClassifier(r'C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\open\data\haarcascade_frontalface_alt2.xml')
+        # cam_url = 'rtsp://admin:fff12345@192.168.0.242:554/Streaming/Channels/201'
+        cam_url = 'rtsp://admin:fff12345@192.168.0.53:554/11'
+        # 用以下模板调用其他摄像头，仅限海康
+        # cam_url='rtsp://admin: 密码  @ IP :554/Streaming/Channels/201'
+        # cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # 调用IP摄像头
+        cap = cv2.VideoCapture(cam_url)  # 调用IP摄像头
+        ok = True
+        n = 0
+        while ok and cap.isOpened():
+            ok, frame = cap.read()
+
+            img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))  # 将每一帧转为Image
+            output_buffer = BytesIO()  # 创建一个BytesIO
+            img.save(output_buffer, format='JPEG')  # 写入output_buffer
+            byte_data = output_buffer.getvalue()  # 在内存中读取
+            base64_data = base64.b64encode(byte_data)  # 转为BASE64
+            # 转换成灰度图像
+            # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # 人脸检测
+            # 1.2为图片缩放比例，minNeighbors为需要至少检测多少次才能确定目标
+            faces = faceCascade.detectMultiScale(
+                frame,
+                scaleFactor=1.2,
+                minNeighbors=5,
+                minSize=(40, 40)
+            )
+            if len(faces) > 0:  # 大于0则检测到人脸
+                # if n < 5:
+                for face in faces:  # 单独框出每一张人脸
+                    x, y, w, h = face  # 获取框的左上的坐标，框的长宽
+                    # 画出矩形框
+                    cv2.rectangle(frame, (x - 10, y - 10), (x + w - 10, y + h - 10), (0, 225, 0), 2)
+                    image = frame
+                    img = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))  # 将每一帧转为Image
+                    output_buffer = BytesIO()  # 创建一个BytesIO
+                    img.save(output_buffer, format='JPEG')  # 写入output_buffer
+                    byte_data = output_buffer.getvalue()  # 在内存中读取
+                    base64_data = base64.b64encode(byte_data)  # 转为BASE64
+            n = n + 1
+            if n == 20:
+                break
+            k = cv2.waitKey(1)
+            if k == 27:  # press 'ESC' to quit
+                break
+            data = {
+                "img": base64_data
+            }
+        cap.release()
+        cv2.destroyAllWindows()
+        # yield data
+        return Response(data=data)
 
 
 # 获取考勤记录

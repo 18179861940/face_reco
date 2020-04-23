@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>打卡</title>
+</head>
+<body>
+    <canvas id="video-canvas" width=800 height=600 style="background-color:rgb(211, 103, 103);
+                   margin:0 auto; border-radius: 10px;"></canvas>
+    <p id="errorMessage"></p>
+	<script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript">
+
+		var canvas = document.getElementById('video-canvas');
+		let page = true;
+
+        window.setInterval(function(){
+            // 请求后台打开ip摄像头接口
+            var xhr = new XMLHttpRequest();
+            xhr.open("get","http://127.0.0.1:8000/users/open_video/");
+            xhr.send(null);
+            xhr.onreadystatechange = function(){
+                if(xhr.status === 200 && xhr.readyState === 4){
+                    var json=JSON.parse(xhr.responseText)
+                    let base64Image = json["img"];
+                    //let base64Img = canvas.toDataURL("image/jpg");
+                    var base64Img = 'data:image/png;base64,'+ base64Image;
+                    //ImageToCanvas(imgUrl)
+                    var canvas = document.getElementById("video-canvas");
+                    let ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = base64Img;
+                    img.onload = function() {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                    };
+                    $.ajax({
+                             url:"http://127.0.0.1:8000/users/register_face/",
+                             type:"post",
+                             data:{"base64":base64Image},
+                             dataType:"text",
+                             async:false,
+                             success:function(data){
+                                 if(data!=null){
+                                  // 页面显示提示信息
+                                    stry = JSON.parse(data)
+                                    let len = stry.length
+                                    let myArray=[]
+                                    console.log("********",stry)
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    for(i=0;i<len;i++){
+                                        userName = stry[i]["userName"]
+                                        attendType = stry[i]["attendType"]
+                                        attendState = stry[i]["attendState"]
+                                        if(attendType=="1"){
+                                            att = "上班打卡"
+                                        }else{
+                                            att = "下班打卡"
+                                        }
+                                        if(attendState=="1"){
+                                            stat = "正常"
+                                        }else if(attendState=="2"){
+                                            stat = "迟到"
+                                        }else if(attendState=="3"){
+                                            stat = "早退"
+                                        }else{
+                                            stat = "缺卡"
+                                        }
+                                        outText = userName + att + stat
+                                        if(userName == ""){
+                                            outText = "没有找到匹配人物"
+                                        }
+                                        myArray.push(outText)
+                                    }
+
+                                    tbody.innerHTML = myArray;
+                                    tbody.style.color="green";
+                                 }else{
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    tbody.innerHTML = "识别失败";
+                                    tbody.style.color="red";
+                                 }
+
+                             }
+
+                         });
+                }
+            };
+        },1000);
+
+        function ImageToCanvas(image) {
+            var canvas = document.createElement("canvas");
+            let ctx = canvas.getContext('2d');
+            let img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+            };
+            img.src = image;
+            return canvas;
+        }
+
+
+	</script>
+
+
+</body>
+</html>

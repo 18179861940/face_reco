@@ -1,0 +1,63 @@
+INFO 2020-04-23 14:46:17,925 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 14:46:23,485 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 353516
+INFO 2020-04-23 14:47:38,116 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 353236
+INFO 2020-04-23 14:48:20,129 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 353036
+INFO 2020-04-23 14:49:34,282 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\openCamera.py changed, reloading.
+INFO 2020-04-23 14:49:34,936 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 14:49:59,137 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 350364
+INFO 2020-04-23 14:50:21,270 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\openCamera.py changed, reloading.
+INFO 2020-04-23 14:50:21,982 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 14:51:00,985 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\openCamera.py changed, reloading.
+INFO 2020-04-23 14:51:01,659 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 14:51:06,950 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 705172
+INFO 2020-04-23 14:52:17,587 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 697936
+INFO 2020-04-23 14:53:38,435 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\openCamera.py changed, reloading.
+INFO 2020-04-23 14:53:39,076 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 14:53:49,997 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 700684
+INFO 2020-04-23 14:54:37,406 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 697268
+INFO 2020-04-23 14:55:22,658 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 696896
+INFO 2020-04-23 14:56:03,542 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 693628
+INFO 2020-04-23 14:56:37,808 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 695032
+INFO 2020-04-23 14:57:51,646 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 702000
+INFO 2020-04-23 14:58:20,963 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 699980
+INFO 2020-04-23 14:59:16,412 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 702616
+INFO 2020-04-23 14:59:59,084 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 707968
+INFO 2020-04-23 15:02:54,786 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 722912
+INFO 2020-04-23 15:03:18,769 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 724172
+INFO 2020-04-23 15:03:52,769 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 723200
+INFO 2020-04-23 15:05:09,919 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 723564
+INFO 2020-04-23 15:05:38,439 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 723952
+INFO 2020-04-23 15:09:12,568 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\users\views.py changed, reloading.
+INFO 2020-04-23 15:09:13,270 autoreload 598 Watching for file changes with StatReloader
+ERROR 2020-04-23 15:09:16,198 log 228 Internal Server Error: /users/open_camera/
+Traceback (most recent call last):
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\core\handlers\exception.py", line 34, in inner
+    response = get_response(request)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\core\handlers\base.py", line 115, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\core\handlers\base.py", line 113, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\views\decorators\csrf.py", line 54, in wrapped_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\views\generic\base.py", line 71, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\rest_framework\views.py", line 505, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\rest_framework\views.py", line 465, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\rest_framework\views.py", line 476, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\rest_framework\views.py", line 502, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\utils\decorators.py", line 148, in _wrapped_view
+    return middleware.process_response(request, response)
+  File "C:\Users\MyPC\PycharmProjects\face_reco\venv\lib\site-packages\django\middleware\gzip.py", line 27, in process_response
+    ae = request.META.get('HTTP_ACCEPT_ENCODING', '')
+AttributeError: 'OpenCamera' object has no attribute 'META'
+ERROR 2020-04-23 15:09:16,200 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 500 18320
+INFO 2020-04-23 15:09:40,163 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\users\views.py changed, reloading.
+INFO 2020-04-23 15:09:40,823 autoreload 598 Watching for file changes with StatReloader
+INFO 2020-04-23 15:09:45,448 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 692048
+INFO 2020-04-23 15:10:15,663 basehttp 157 "GET /users/open_camera/ HTTP/1.1" 200 693344
+INFO 2020-04-23 15:13:32,006 autoreload 222 C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\users\urls.py changed, reloading.
+INFO 2020-04-23 15:13:32,675 autoreload 598 Watching for file changes with StatReloader
