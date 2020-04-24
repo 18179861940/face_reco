@@ -5,11 +5,17 @@ Django==3.0.5
 django-cors-headers==3.2.1
 djangorestframework==3.11.0
 idna==2.9
+image==1.5.30
 numpy==1.18.2
+opencv-contrib-python==4.2.0.34
 opencv-python==4.2.0.34
+pandas==1.0.3
+Pillow==7.1.1
 PyMySQL==0.9.3
+python-dateutil==2.8.1
 pytz==2019.3
 redis==3.4.1
 requests==2.23.0
+six==1.14.0
 sqlparse==0.3.1
 urllib3==1.25.8

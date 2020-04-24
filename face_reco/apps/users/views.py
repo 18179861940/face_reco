@@ -37,9 +37,9 @@ n_time = datetime.datetime.now()
 # 人脸打卡
 class FaceCardView(APIView):
     def post(self, request):
-        base64 = request.data["base64"]
+        base64Img = request.data["base64"]
         try:
-            datas = baidu_face_multi_search(base64)
+            datas = baidu_face_multi_search(base64Img)
             clock_list = []
             if datas["error_code"] == 0:
                 user_infos = datas["result"]["face_list"]
