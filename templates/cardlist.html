@@ -18,6 +18,7 @@
         开始时间：<input class="startTime" type="date"/>
         结束时间：<input class="endTime" type="date"/>
         <button id="search">搜索</button>
+        <button onclick='tableToExcel()'>导出数据</button>
     </div>
     <div style="width:90%;margin: 10px auto">
         <table border="1" width="90%" height="50" cellspacing="0" style="text-align: center;">
@@ -32,7 +33,7 @@
             </tr>
             </thead>
             <tbody id="tbMain">
-                <tr></tr>
+            <tr></tr>
             </tbody>
         </table>
     </div>
@@ -54,14 +55,14 @@
         rows: "15",  // 每页多少条数据
     };
     // 获取输入的名字
-    $("#name").blur(function(){
-            senddata.userName = $(this).val();
+    $("#name").blur(function () {
+        senddata.userName = $(this).val();
     });
-    $(".startTime").blur(function(){
-            senddata.startDate = $(this).val();
+    $(".startTime").blur(function () {
+        senddata.startDate = $(this).val();
     });
-    $(".endTime").blur(function(){
-            senddata.endDate = $(this).val();
+    $(".endTime").blur(function () {
+        senddata.endDate = $(this).val();
     });
 
     search.onclick = function () {
@@ -71,37 +72,40 @@
         $.post(baseUrl + "users/get_card_list/",
             senddata,
             function (data, status) {
-                if(data["success"] === "false"){
+                if (data["success"] === "false") {
+                    var dataInfo = [];
+                    window.dataInfo = dataInfo;
                     alert("查询失败")
-                }else{
+                } else {
                     $("#tbMain").empty();
                     var dataInfo = data["rows"];
-                     $.each(dataInfo, function (i, json) {
-                            if (dataInfo[i]["attendType"] === "1") {
-                                attendType = "上班"
-                            } else {
-                                attendType = "下班"
-                            }
-                            if (dataInfo[i]["attendState"] === "1") {
-                                attendState = "正常"
-                            } else if (dataInfo[i]["attendState"] === "2") {
-                                attendState = "迟到"
-                            } else {
-                                attendState = "早退"
-                            }
-                            var $tr = $("<tr></tr>");
-                            var $td = $(
-                                '<td>'+ (parseInt(i)+1).toString() +'</td>'+
-                                '<td>'+dataInfo[i]["userName"]+ '</td>' +
-                                '<td>'+dataInfo[i]["userCode"]+'</td>'+
-                                '<td>'+attendType+'</td>'+
-                                '<td>'+dataInfo[i]["pushTime"]+'</td>'+
-                                '<td>'+attendState+'</td>'
-                            );
-                            $tr.append($td);
-                            $("#tbMain").append($tr);
+                    window.dataInfo = dataInfo;
+                    $.each(dataInfo, function (i, json) {
+                        if (dataInfo[i]["attendType"] === "1") {
+                            attendType = "上班"
+                        } else {
+                            attendType = "下班"
+                        }
+                        if (dataInfo[i]["attendState"] === "1") {
+                            attendState = "正常"
+                        } else if (dataInfo[i]["attendState"] === "2") {
+                            attendState = "迟到"
+                        } else {
+                            attendState = "早退"
+                        }
+                        var $tr = $("<tr></tr>");
+                        var $td = $(
+                            '<td>' + (parseInt(i) + 1).toString() + '</td>' +
+                            '<td>' + dataInfo[i]["userName"] + '</td>' +
+                            '<td>' + dataInfo[i]["userCode"] + '</td>' +
+                            '<td>' + attendType + '</td>' +
+                            '<td>' + dataInfo[i]["pushTime"] + '</td>' +
+                            '<td>' + attendState + '</td>'
+                        );
+                        $tr.append($td);
+                        $("#tbMain").append($tr);
 
-                     });
+                    });
                 }
             });
     };
@@ -117,6 +121,7 @@
                 let jsonResponse = JSON.parse(result);
                 var tbody = document.getElementById('tbMain');
                 let per = jsonResponse["rows"];
+                window.dataInfo = per;
                 for (var i = 0; i < per.length; i++) { //遍历一下json数据  
                     var trow = getDataRow(i, per[i]); //定义一个方法,返回tr数据  
                     tbody.appendChild(trow);
@@ -129,7 +134,7 @@
         var row = document.createElement('tr'); //创建行  
 
         var idCell = document.createElement('td'); //创建第一列id  
-        idCell.innerHTML = i+1; //填充数据  
+        idCell.innerHTML = i + 1; //填充数据  
         row.appendChild(idCell); //加入行  ，下面类似  
 
         var nameCell = document.createElement('td');//创建第二列name  
@@ -197,5 +202,59 @@
     }
 
     list()
+    // 导出数据
+    function tableToExcel() {
+        var jsonData = window.dataInfo;
+        //列标题
+        let str = '<tr><td>员工id</td><td>员工姓名</td><td>员工编号</td><td>打卡时间</td><td>打卡状态</td><td>打卡类型</td></tr>';
+        //循环遍历，每行加入tr标签，每个单元格加td标签
+        for (let i = 0; i < jsonData.length; i++) {
+            str += '<tr>';
+            for (let item in jsonData[i]) {
+                //增加\t为了不让表格显示科学计数法或者其他格式
+                if (item === 'attendState'){  //打卡状态
+                    if(jsonData[i][item] === '1'){
+                        jsonData[i][item] = "正常"
+                    }else if(jsonData[i][item] === '2'){
+                        jsonData[i][item] = "迟到"
+                    }else if(jsonData[i][item] === '3'){
+                        jsonData[i][item] = "早退"
+                    }else{
+                        jsonData[i][item] = "缺卡"
+                    }
+                }
+                if(item === "attendType"){  // 打卡类型
+                    if(jsonData[i][item] === '1'){
+                        jsonData[i][item] = "上班"
+                    }else{
+                        jsonData[i][item] = "下班"
+                    }
+
+                }
+                str += `<td>${jsonData[i][item] + '\t'}</td>`;
+            }
+            str += '</tr>';
+        }
+        //Worksheet名
+        let worksheet = 'Sheet1'
+        let uri = 'data:application/vnd.ms-excel;base64,';
+
+        //下载的表格模板数据
+        let template = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+      <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+        <x:Name>${worksheet}</x:Name>
+        <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+        </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+        </head><body><table>${str}</table></body></html>`;
+        //下载模板
+        window.location.href = uri + base64(template)
+    }
+
+    //输出base64编码
+    function base64(s) {
+        return window.btoa(unescape(encodeURIComponent(s)))
+    }
 </script>
 </html>

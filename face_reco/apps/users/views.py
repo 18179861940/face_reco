@@ -334,9 +334,9 @@ class GetPersonList(APIView):
                         "id": user_id,
                         "userName": user_name,
                         "userCode": user_code,
-                        "attendType": user_type,
-                        "attendState": attend_state,
                         "pushTime": push_time,
+                        "attendState": attend_state,
+                        "attendType": user_type,
                     }
                     user_list.append(user_dict)
             user_lists = pagination(1, 10, user_list)
@@ -402,12 +402,14 @@ class GetPersonList(APIView):
                     user_code = user_info.userCode
                     push_time = user_info.pushTime
                     attend_state = user_info.attendState
+                    attend_type = user_info.attendType
                     user_dict = {
                         "id": user_id,
                         "userName": user_name,
                         "userCode": user_code,
                         "pushTime": push_time,
                         "attendState": attend_state,
+                        "attendType": attend_type,
                     }
                     user_list.append(user_dict)
             user_lists = pagination(current_page, page_size, user_list)
