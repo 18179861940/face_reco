@@ -1,12 +1,9 @@
 import time
 import multiprocessing as mp
-import threading
-from queue import Queue
 import cv2
 import numpy as np
 import asyncio
 import websockets
-from websockets import ConnectionClosed
 
 frame = None
 faceCascade = cv2.CascadeClassifier(r'open\data\haarcascade_frontalface_alt2.xml')
@@ -21,6 +18,7 @@ def websocket_process(img_dict):
     asyncio.get_event_loop().run_forever()
 
 
+# 接收客户端的消息并处理
 async def recv_msg(websocket, img_dict):
     recv_text = await websocket.recv()
     if recv_text == 'begin':
@@ -39,6 +37,7 @@ async def recv_msg(websocket, img_dict):
 def image_put(q, user, pwd, ip):
     rtsp_url = 'rtsp://{0}:{1}@{2}:554/Streaming/Channels/201'.format(user, pwd, ip)
     cap = cv2.VideoCapture(rtsp_url)
+    # cap = cv2.VideoCapture(0)
     i = 0
     while True:
         ret, frame = cap.read()
@@ -55,8 +54,8 @@ def image_put(q, user, pwd, ip):
                     x, y, w, h = face  # 获取框的左上的坐标，框的长宽
                     # 画出矩形框
                     cv2.rectangle(frame, (x - 10, y - 10), (x + w - 10, y + h - 10), (0, 255, 0), 2)
-            q.put(frame)
-            q.get() if q.qsize() > 1 else time.sleep(0.01)
+            q.put(frame)  # 将图片放入队列
+            q.get() if q.qsize() > 1 else time.sleep(0.01)    # 移除队列中的旧图
 
 
 def image_get(q, img_dict):

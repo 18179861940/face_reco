@@ -256,8 +256,8 @@ class OpenVideo(APIView):
     def get(self, request):
         # 调用人脸识别分类器
         faceCascade = cv2.CascadeClassifier(r'C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\open\data\haarcascade_frontalface_alt2.xml')
-        # cam_url = 'rtsp://admin:fff12345@192.168.0.242:554/Streaming/Channels/201'
-        cam_url = 'rtsp://admin:fff12345@192.168.0.53:554/11'
+        cam_url = 'rtsp://admin:fff12345@192.168.0.242:554/Streaming/Channels/201'
+        # cam_url = 'rtsp://admin:fff12345@192.168.0.53:554/11'
         # 用以下模板调用其他摄像头，仅限海康
         # cam_url='rtsp://admin: 密码  @ IP :554/Streaming/Channels/201'
         # cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # 调用IP摄像头
@@ -362,12 +362,17 @@ class GetPersonList(APIView):
         if 'startDate' in data.keys():
             # 开始查询时间
             start_time = request.data["startDate"]
+            if start_time == "":
+                start_time = '2020-01-01'
         else:
             import datetime
             start_time = '2020-01-01'
         if 'endDate' in data.keys():
             # 结束查询时间
             end_time = request.data["endDate"]
+            if end_time == "":
+                import datetime
+                end_time = datetime.datetime.now()
         else:
             import datetime
             end_time = datetime.datetime.now()
@@ -455,12 +460,17 @@ class GetUserListView(APIView):
         if 'startDate' in data.keys():
             # 开始查询时间
             start_time = request.data["startDate"]
+            if start_time == "":
+                start_time = '2020-01-01'
         else:
             import datetime
             start_time = '2020-01-01'
         if 'endDate' in data.keys():
             # 结束查询时间
             end_time = request.data["endDate"]
+            if end_time == "":
+                import datetime
+                end_time = datetime.datetime.now()
         else:
             import datetime
             end_time = datetime.datetime.now()
