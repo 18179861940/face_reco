@@ -13,7 +13,7 @@ def websocket_process(img_dict):
     # 服务器端主逻辑
     async def main_logic(websocket, path):
         await recv_msg(websocket, img_dict)
-    start_server = websockets.serve(main_logic, '0.0.0.0', 5678)
+    start_server = websockets.serve(main_logic, '0.0.0.0', 5679)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 

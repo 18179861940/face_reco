@@ -32,9 +32,16 @@
                 <td>打卡状态</td>
             </tr>
             </thead>
-            <tbody id="tbMain">
+            <tbody id="tbMain" >
             <tr></tr>
             </tbody>
+        </table>
+        <table width="60%" align="right">
+            <tr>
+                <td>
+                    <div id="barcon" name="barcon"></div>
+                </td>
+            </tr>
         </table>
     </div>
 
@@ -43,73 +50,8 @@
 <script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 <script type="text/javascript" src="js/vue.js"></script>
 <script type="text/javascript" src="js/root.js"></script>
+<script type="text/javascript" src="js/cardlist.js"></script>
 <script type="text/javascript">
-    var search = document.getElementById("search");
-    var senddata = {
-        userName: "",
-        attendType: "1",  // 打卡类型
-        attendState: "1",  // 打卡状态
-        startDate: "",  // 开始日期
-        endDate: "",  // 结束日期
-        page: "1",  // 当前页
-        rows: "15",  // 每页多少条数据
-    };
-    // 获取输入的名字
-    $("#name").blur(function () {
-        senddata.userName = $(this).val();
-    });
-    $(".startTime").blur(function () {
-        senddata.startDate = $(this).val();
-    });
-    $(".endTime").blur(function () {
-        senddata.endDate = $(this).val();
-    });
-
-    search.onclick = function () {
-        // 获取打卡类型
-        senddata.attendType = $("input[name='attendType']:checked").val();
-        senddata.attendState = $("input[name='attendState']:checked").val();
-        $.post(baseUrl + "users/get_card_list/",
-            senddata,
-            function (data, status) {
-                if (data["success"] === "false") {
-                    var dataInfo = [];
-                    window.dataInfo = dataInfo;
-                    alert("查询失败")
-                } else {
-                    $("#tbMain").empty();
-                    var dataInfo = data["rows"];
-                    window.dataInfo = dataInfo;
-                    $.each(dataInfo, function (i, json) {
-                        if (dataInfo[i]["attendType"] === "1") {
-                            attendType = "上班"
-                        } else {
-                            attendType = "下班"
-                        }
-                        if (dataInfo[i]["attendState"] === "1") {
-                            attendState = "正常"
-                        } else if (dataInfo[i]["attendState"] === "2") {
-                            attendState = "迟到"
-                        } else {
-                            attendState = "早退"
-                        }
-                        var $tr = $("<tr></tr>");
-                        var $td = $(
-                            '<td>' + (parseInt(i) + 1).toString() + '</td>' +
-                            '<td>' + dataInfo[i]["userName"] + '</td>' +
-                            '<td>' + dataInfo[i]["userCode"] + '</td>' +
-                            '<td>' + attendType + '</td>' +
-                            '<td>' + dataInfo[i]["pushTime"] + '</td>' +
-                            '<td>' + attendState + '</td>'
-                        );
-                        $tr.append($td);
-                        $("#tbMain").append($tr);
-
-                    });
-                }
-            });
-    };
-
     function list() {
         // 请求打卡列表接口
         var xhr = new XMLHttpRequest();
@@ -158,7 +100,8 @@
         var endTimeCell = document.createElement('td');//创建第四列打卡时间 
         var pushTime = h.pushTime;
         var time_list = pushTime.split("T");
-        var this_time = time_list[0] + " " + time_list[1];
+        time_time = time_list[1].split(".");
+        var this_time = time_list[0] + " " + time_time[0];
         endTimeCell.innerHTML = this_time;
         row.appendChild(endTimeCell);
 
@@ -178,83 +121,7 @@
         return row; //返回tr数据      
     };
 
-    function deleteReco(user_id) {
-        let xhr = new XMLHttpRequest();
-        xhr.open("post", "http://127.0.0.1:8000/users/delete_card/");
-        xhr.setRequestHeader("Content-Type", "application/json");
-        let data = {
-            "user_id": user_id
-        };
-
-
-        if (type === "formdata") {
-            data = new FormData();
-            data.append("key", "value");
-        }
-
-        xhr.send(data);
-        // （4） 回调函数  success
-        xhr.onreadystatechange = function () {
-            if (this.status === 200) {
-                console.log("responseText", this.responseText)
-            }
-        };
-    }
-
     list()
-    // 导出数据
-    function tableToExcel() {
-        var jsonData = window.dataInfo;
-        //列标题
-        let str = '<tr><td>员工id</td><td>员工姓名</td><td>员工编号</td><td>打卡时间</td><td>打卡状态</td><td>打卡类型</td></tr>';
-        //循环遍历，每行加入tr标签，每个单元格加td标签
-        for (let i = 0; i < jsonData.length; i++) {
-            str += '<tr>';
-            for (let item in jsonData[i]) {
-                //增加\t为了不让表格显示科学计数法或者其他格式
-                if (item === 'attendState'){  //打卡状态
-                    if(jsonData[i][item] === '1'){
-                        jsonData[i][item] = "正常"
-                    }else if(jsonData[i][item] === '2'){
-                        jsonData[i][item] = "迟到"
-                    }else if(jsonData[i][item] === '3'){
-                        jsonData[i][item] = "早退"
-                    }else{
-                        jsonData[i][item] = "缺卡"
-                    }
-                }
-                if(item === "attendType"){  // 打卡类型
-                    if(jsonData[i][item] === '1'){
-                        jsonData[i][item] = "上班"
-                    }else{
-                        jsonData[i][item] = "下班"
-                    }
 
-                }
-                str += `<td>${jsonData[i][item] + '\t'}</td>`;
-            }
-            str += '</tr>';
-        }
-        //Worksheet名
-        let worksheet = 'Sheet1'
-        let uri = 'data:application/vnd.ms-excel;base64,';
-
-        //下载的表格模板数据
-        let template = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
-      xmlns:x="urn:schemas-microsoft-com:office:excel"
-      xmlns="http://www.w3.org/TR/REC-html40">
-      <head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
-        <x:Name>${worksheet}</x:Name>
-        <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-        </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
-        </head><body><table>${str}</table></body></html>`;
-        //下载模板
-        window.location.href = uri + base64(template)
-    }
-
-    //输出base64编码
-    function base64(s) {
-        return window.btoa(unescape(encodeURIComponent(s)))
-    }
 </script>
 </html>

@@ -321,7 +321,7 @@ class GetPersonList(APIView):
         end_time = datetime.datetime.now()
         user_list = []
         try:
-            user_infos = AttendCard.objects.filter(is_delete=False, attendType="1", pushTime__range=[start_time, end_time]).order_by("-pushTime")
+            user_infos = AttendCard.objects.filter(is_delete=False, pushTime__range=[start_time, end_time]).order_by("-pushTime")
             if user_infos:
                 for user_info in user_infos:
                     user_id = user_info.id
@@ -339,7 +339,7 @@ class GetPersonList(APIView):
                         "attendType": user_type,
                     }
                     user_list.append(user_dict)
-            user_lists = pagination(1, 10, user_list)
+            user_lists = pagination(1, 40, user_list)
         except:
             user_lists = {
                 "success": False,

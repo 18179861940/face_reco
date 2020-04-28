@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/root.js"></script>
     <title>人脸打卡</title>
     <style>
         button {
@@ -33,10 +34,10 @@
                     打开摄像头
                 </button>
                 <button id="cardList" style="position: relative;top: -45px;left: 938px;">
-                    <span><a href="cardlist.html" target="_blank">考勤列表</a></span>
+                    <span><a href="cardlist.html" target="_blank" style="color: white">考勤列表</a></span>
                 </button>
                 <button id="userList" style="position: relative;top: -45px;left: 947px;">
-                    <span><a href="cardlist.html" target="_blank">员工列表</a></span>
+                    <span><a href="userlist.html" target="_blank" style="color: white">员工列表</a></span>
                 </button>
             </div>
             <div class="err" style="position: relative;top: 15px;left: 805px;height: 100px" id="errorMessage"></div>
@@ -48,10 +49,11 @@
 <script type="text/javascript">
     var openCamera = document.getElementById("openCameraBt");
     var base64Image = [];
+    var i = 0;
     openCamera.onclick = function () {
         if ("WebSocket" in window) {
             // 打开一个 web socket 这里的IP是本机的IP地址，端口号与websocket一致
-            var ws = new WebSocket("ws://192.168.0.51:5678");
+            var ws = new WebSocket("ws://192.168.0.51:5679");
             // 连接建立后的回调函数
             ws.onopen = function () {
                 // Web Socket 已连接上，使用 send() 方法发送数据
@@ -73,63 +75,67 @@
                         ctx.drawImage(img, 0, 0);
                     };
                     var base64Image = result.split(",");
-                    // 人脸打卡
-                    $.ajax({
-                        url: "http://127.0.0.1:8000/users/register_face/",
-                        type: "post",
-                        data: {"base64": base64Image[1]},
-                        dataType: "text",
-                        async: true,
-                        success: function (data) {
-                            if (data != null) {
-                                // 页面显示提示信息
-                                stry = JSON.parse(data);
-                                let len = stry.length;
-                                console.log("len", len)
-                                if (len === "undefined") {
+                    window.base64Image = base64Image;
+                    i = i + 1;
+                    if (i % 25 === 0) {
+                        $.ajax({
+                            url: baseUrl + "users/register_face/",
+                            type: "post",
+                            data: {"base64": base64Image[1]},
+                            dataType: "text",
+                            async: false,
+                            success: function (data) {
+                                if (data != null) {
+                                    // 页面显示提示信息
+                                    stry = JSON.parse(data);
+                                    let len = stry.length;
+                                    if (len === "undefined") {
+                                        var tbody = document.getElementById('errorMessage');
+                                        tbody.innerHTML = "识别失败";
+                                        tbody.style.color = "red";
+                                    } else {
+                                        let myArray = [];
+                                        let tbody = document.getElementById('errorMessage');
+                                        for (var i = 0; i < len; i++) {
+                                            userName = stry[i]["userName"];
+                                            attendType = stry[i]["attendType"];
+                                            attendState = stry[i]["attendState"];
+                                            if (attendType === "1") {
+                                                att = "上班打卡"
+                                            } else {
+                                                att = "下班打卡"
+                                            }
+                                            if (attendState === "1") {
+                                                stat = "正常"
+                                            } else if (attendState === "2") {
+                                                stat = "迟到"
+                                            } else if (attendState === "3") {
+                                                stat = "早退"
+                                            } else {
+                                                stat = "缺卡"
+                                            }
+                                            outText = userName + att + stat;
+                                            if (userName === "") {
+                                                outText = "没有找到匹配人物"
+                                            }
+                                            myArray.push(outText)
+                                        }
 
-                                } else {
-                                    let myArray = [];
-                                    let tbody = document.getElementById('errorMessage');
-                                    for (var i = 0; i < len; i++) {
-                                        userName = stry[i]["userName"];
-                                        attendType = stry[i]["attendType"];
-                                        attendState = stry[i]["attendState"];
-                                        if (attendType === "1") {
-                                            att = "上班打卡"
-                                        } else {
-                                            att = "下班打卡"
-                                        }
-                                        if (attendState === "1") {
-                                            stat = "正常"
-                                        } else if (attendState === "2") {
-                                            stat = "迟到"
-                                        } else if (attendState === "3") {
-                                            stat = "早退"
-                                        } else {
-                                            stat = "缺卡"
-                                        }
-                                        outText = userName + att + stat;
-                                        if (userName === "") {
-                                            outText = "没有找到匹配人物"
-                                        }
-                                        myArray.push(outText)
+                                        tbody.innerHTML = myArray;
+                                        tbody.style.color = "green";
                                     }
 
-                                    tbody.innerHTML = myArray;
-                                    tbody.style.color = "green";
+                                } else {
+                                    var tbody = document.getElementById('errorMessage');
+                                    tbody.innerHTML = "识别失败";
+                                    tbody.style.color = "red";
                                 }
 
-                            } else {
-                                var tbody = document.getElementById('errorMessage');
-                                tbody.innerHTML = "识别失败";
-                                tbody.style.color = "red";
                             }
 
-                        }
-
-                    })
-                })
+                        })
+                    }
+                });
             };
 
             // 连接关闭后的回调函数
@@ -138,7 +144,7 @@
                 let tbody = document.getElementById('errorMessage');
                 tbody.innerHTML = "连接已关闭...";
                 tbody.style.color = "red";
-                alert("连接已关闭...")
+
             };
             // 监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，server端会抛异常。
             window.onunload = function () {
