@@ -203,6 +203,14 @@ class FaceCardView(APIView):
                                             "attendState": "3"
                                         }
                                         clock_list.append(clockData)
+                                    else:
+                                        clockData = {
+                                            "userName": user_name,
+                                            "pushTime": user_up.pushTime,
+                                            "attendType": "2",
+                                            "attendState": "3"
+                                        }
+                                        clock_list.append(clockData)
                                 else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
                                     AttendCard.objects.create(
                                         userName=user_name,
@@ -224,22 +232,22 @@ class FaceCardView(APIView):
                             else:
                                 clock_list = {
                                     "success": False,
-                                    "message": "打卡失败"
+                                    "message": "识别失败"
                                 }
                 else:
                     clock_list = {
                         "success": False,
-                        "message": "打卡失败"
+                        "message": "识别失败"
                     }
             else:
                 clock_list = {
                     "success": False,
-                    "message": "打卡失败"
+                    "message": "识别失败"
                 }
         except:
             clock_list = {
                 "success": False,
-                "message": "打卡失败"
+                "message": "识别失败"
             }
 
         return Response(data=clock_list)
