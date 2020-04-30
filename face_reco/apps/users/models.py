@@ -14,6 +14,7 @@ class AttendCard(models.Model):
                                    choices=(('1', '正常 '), ('2', '迟到'), ('3', '早退'), ('4', '缺卡')), default='1')
     pushTime = models.DateTimeField(auto_now_add=True, verbose_name="打卡时间")
     is_delete = models.BooleanField(default=False)  # 是否删除
+    face_image = models.ImageField(upload_to="attendFace", blank=True, null=True, verbose_name='打卡证据图片')
 
     class Meta:
         db_table = 'card_table'

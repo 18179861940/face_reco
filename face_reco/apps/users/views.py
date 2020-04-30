@@ -1,5 +1,9 @@
 import base64
 import datetime
+import os
+import time
+
+from face_reco.settings import MEDIA_ROOT
 from utils.openCamera import generate
 import cv2
 from django.http import StreamingHttpResponse
@@ -63,7 +67,12 @@ class FaceCardView(APIView):
                             if n_time > s_time and n_time < s_time1:
                                 # 判断当前这个人是否已经上班打过卡
                                 if not user_up:
-                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="1")
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, '/up_img/%s.jpg' % int(time.time()))
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
+                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="1",
+                                                              face_image=image_url)
                                     clockData = {
                                         "userName": user_name,
                                         "pushTime": n_time,
@@ -71,7 +80,7 @@ class FaceCardView(APIView):
                                         "attendState": "1"
                                     }
                                     clock_list.append(clockData)
-                                else:   # 上班已经打过卡
+                                else:  # 上班已经打过卡
                                     clockData = {
                                         "userName": user_name,
                                         "pushTime": user_up.pushTime,
@@ -92,7 +101,7 @@ class FaceCardView(APIView):
                                     }
                                     clock_list.append(clockData)
                                 elif user_up and user_down:
-                                    if user_down.attendState == "1":   # 下班正常打过卡
+                                    if user_down.attendState == "1":  # 下班正常打过卡
                                         # 判断打卡时间有没有超过两分钟
                                         minute = minNums(user_down.pushTime, n_time)
                                         if minute > 2:
@@ -136,7 +145,8 @@ class FaceCardView(APIView):
                                         }
                                         clock_list.append(clockData)
                                 else:  # 上班时间没有打卡，上班时间缺卡
-                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="4", pushTime=s_time1)
+                                    AttendCard.objects.create(userName=user_name, attendType="1", attendState="4",
+                                                              pushTime=s_time1)
                                     AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
                                     clockData = {
                                         "userName": user_name,
@@ -173,10 +183,16 @@ class FaceCardView(APIView):
                             elif n_time > m_time and n_time < e_time:
                                 # 上班没有打卡，则上班打卡缺卡
                                 if user_up and not user_down:
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, '/up_img/%s.jpg' % int(time.time()))
+                                    print(image_url)
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="2",
-                                        attendState="3"
+                                        attendState="3",
+                                        face_image=image_url
                                     )
                                     clockData = {
                                         "userName": user_name,
@@ -212,15 +228,28 @@ class FaceCardView(APIView):
                                         }
                                         clock_list.append(clockData)
                                 else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, 'up_img/%s.png' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    image_url1 = os.path.join(MEDIA_ROOT, 'down_img/%s.png' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    print("image_url1:", image_url1)
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
+                                        print("image_data:", image_data)
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="1",
-                                        attendState="4"
+                                        attendState="4",
+                                        face_image=image_url
                                     )
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="2",
-                                        attendState="3"
+                                        attendState="3",
+                                        face_image=image_url1
                                     )
                                     clockData = {
                                         "userName": user_name,
@@ -263,7 +292,8 @@ class OpenCamera(APIView):
 class OpenVideo(APIView):
     def get(self, request):
         # 调用人脸识别分类器
-        faceCascade = cv2.CascadeClassifier(r'C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\open\data\haarcascade_frontalface_alt2.xml')
+        faceCascade = cv2.CascadeClassifier(
+            r'C:\Users\MyPC\PycharmProjects\face_reco\face_reco\apps\utils\open\data\haarcascade_frontalface_alt2.xml')
         cam_url = 'rtsp://admin:fff12345@192.168.0.242:554/Streaming/Channels/201'
         # cam_url = 'rtsp://admin:fff12345@192.168.0.53:554/11'
         # 用以下模板调用其他摄像头，仅限海康
@@ -321,7 +351,8 @@ class OpenVideo(APIView):
 class GetPersonList(APIView):
     serializer_class = UserSerializer
     queryset = AttendCard.objects.all()
-    def get(self,request):
+
+    def get(self, request):
         """
         获取所有考勤记录
         """
@@ -329,7 +360,8 @@ class GetPersonList(APIView):
         end_time = datetime.datetime.now()
         user_list = []
         try:
-            user_infos = AttendCard.objects.filter(is_delete=False, pushTime__range=[start_time, end_time]).order_by("-pushTime")
+            user_infos = AttendCard.objects.filter(is_delete=False, pushTime__range=[start_time, end_time]).order_by(
+                "-pushTime")
             if user_infos:
                 for user_info in user_infos:
                     user_id = user_info.id
@@ -527,4 +559,3 @@ class GetUserListView(APIView):
                 "message": "查询失败"
             }
         return Response(data=user_info)
-
