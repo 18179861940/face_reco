@@ -37,8 +37,6 @@ async def recv_msg(websocket, img_dict):
 def image_put(q, user, pwd, ip):
     rtsp_url = 'rtsp://{0}:{1}@{2}:554/Streaming/Channels/201'.format(user, pwd, ip)
     cap = cv2.VideoCapture(rtsp_url)
-    # cap = cv2.VideoCapture(0)
-    i = 0
     while True:
         ret, frame = cap.read()
         if ret:

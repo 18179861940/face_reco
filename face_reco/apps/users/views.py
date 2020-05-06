@@ -110,12 +110,19 @@ class FaceCardView(APIView):
                                         # 判断打卡时间有没有超过两分钟
                                         minute = minNums(user_down.pushTime, n_time)
                                         if minute > 2:
+                                            image_data = base64.b64decode(base64Img)
+                                            image_url = os.path.join(MEDIA_ROOT, 'attendFace/down_img/%s.jpg' % int(
+                                                time.strftime("%Y%m%d%H%M%S"))).replace(
+                                                '\\', '/')
+                                            with open(image_url, 'wb') as f:
+                                                f.write(image_data)  # 截取media路径，存放在字段中
                                             AttendCard.objects.filter(userName=user_name,
                                                                       attendType="2",
                                                                       attendState="1",
                                                                       pushTime__range=[t_time, t_time1]
                                                                       ).update(
                                                 pushTime=n_time,
+                                                face_image=image_url
                                             )
                                             clockData = {
                                                 "userName": user_name,
@@ -230,12 +237,19 @@ class FaceCardView(APIView):
                                     # 判断打卡时间有没有超过两分钟
                                     minute = minNums(user_down.pushTime, n_time)
                                     if minute > 2:
+                                        image_data = base64.b64decode(base64Img)
+                                        image_url = os.path.join(MEDIA_ROOT, 'attendFace/down_img/%s.jpg' % int(
+                                            time.strftime("%Y%m%d%H%M%S"))).replace(
+                                            '\\', '/')
+                                        with open(image_url, 'wb') as f:
+                                            f.write(image_data)  # 截取media路径，存放在字段中
                                         AttendCard.objects.filter(userName=user_name,
                                                                   attendType="2",
                                                                   attendState="3",
                                                                   pushTime__range=[t_time, t_time1]
                                                                   ).update(
                                             pushTime=n_time,
+                                            face_image=image_url
                                         )
                                         clockData = {
                                             "userName": user_name,
