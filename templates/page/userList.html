@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="easyui-panel  easyui-panel-style" data-options="title: '考勤记录表'" style="height: 100%">
+    <div class="datagrid-header" id="user-grid-toolbar">
+          <table class="search-table">
+            <tr>
+                 <td class="text-td">员工性名:</td>
+                 <td class="inputer-td">
+                     <input class="easyui-textbox " o_type="text" o_name="userName">
+                 </td>
+                 <td class="text-td">性别:</td>
+                 <td class="inputer-td">
+                     <input class="easyui-combobox " o_type="combobox" o_name="sex"
+                            data-options="editable:false,valueField:'value',textField:'context',url:'data/sex.json'">
+                 </td>
+                 <td class="text-td">在职状态:</td>
+                 <td class="inputer-td">
+                      <input class="easyui-combobox " o_type="combobox" o_name="state"
+                            data-options="editable:false,valueField:'value',textField:'context',url:'data/workState.json'">
+                 </td>
+                 <td class="text-td">
+
+                 </td>
+             </tr>
+            <tr>
+                 <td class="text-td">录入时间:</td>
+                 <td class="inputer-td" colspan="3">
+                     <input class="easyui-datebox" o_type="text" o_name="startTime">&nbsp;&nbsp;至&nbsp;&nbsp;<input class="easyui-datebox" o_type="text" o_name="endTime">
+                 </td>
+
+
+             </tr>
+         </table>
+
+
+      <!--  <div style="text-align: center">
+            <a href="javascript:void (0)" class="more-condition">
+        <span class="more-bg"
+              style="background: url(../images/down.png) no-repeat left;">&nbsp;&nbsp;&nbsp;</span>
+                <span class="more-tips">更多</span></a>
+        </div>-->
+
+
+        <div class="option-buttons">
+            <a href="javascript:void(0);" class="easyui-linkbutton opt-button" style="width:60px" data-options="iconCls: 'icon-add'"
+               opt-type="ADD">增加</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton opt-button" style="width:60px" data-options="iconCls: 'icon-search'"
+               opt-type="QUERY">搜索</a>
+           <!-- <a href="javascript:void(0);" class="easyui-linkbutton opt-button" style="width:80px" data-options="iconCls: 'icon-remove'"
+               opt-type="UPDATE" id="QR-code-button"></a>
+            <a href="javascript:void(0);" class="easyui-linkbutton opt-button" style="width:80px" data-options="iconCls: 'icon-print'"
+               opt-type="CHECK" id="check-button">发送信息</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton opt-button" style="width:80px" data-options="iconCls: 'icon-sum'"
+               opt-type="LOCK" id="lock-button">发送邮箱</a>-->
+
+        </div>
+    </div>
+   <!-- <input type="hidden" id="lockOpeUserId" th:value="${session.loginInfo.id}">-->
+    <table id="user-grid" style="height: 98.5%">
+
+    </table>
+</div>
+
+
+<script>
+
+    $(function () {
+
+
+        $("#user-grid").datagrid({
+            toolbar: "#user-grid-toolbar",
+            //url: "data/userList.json",
+            url: "http://127.0.0.1:8000/users/get_user_list/",
+            method:"post",
+            loadMsg: '正在加载考勤记录列表...',
+            striped: true,//true将交替显示行背景。
+            pagination: true,
+            pageSize: 5,//当设置分页属性时，初始化每页记录数。
+            pageNumber: 1,//当设置分页属性时，初始化分页码。
+            pageList: [5, 10, 15],
+            fitColumns: true,//true将自动使列适应表格宽度以防止出现水平滚动。
+            columns: [
+                [{
+                    field: "id",
+                    checkbox: true,
+                    width: "2%"
+                }, {
+                    field: "userName",
+                    title: "员工名",
+                    width: "15%",
+                    align: "center",
+                    halign: "center",
+                    resizable: true,
+                    sortable: true
+                }, {
+                    field: "userCode",
+                    title: "员工代码",
+                    width: "15%",
+                    align: "center",
+                    halign: "center",
+                    resizable: true,
+                    sortable: true
+                }, {
+                    field: "sex",
+                    title: "性别",
+                    width: "15%",
+                    align: "center",
+                    halign: "center",
+                    resizable: true,
+                    sortable: true,
+                    formatter: function (value, row, index) {
+                        if ("1" == value) {
+                            value = "男"
+                        } else if ("2" == value) {
+                            value = "女"
+                        }
+                        return value;
+                    }
+                },{
+                    field: "state",
+                    title: "在职状态",
+                    width: "15%",
+                    align: "center",
+                    halign: "center",
+                    resizable: true,
+                    sortable: true,
+                    formatter: function (value, row, index) {
+                        if ("1" == value) {
+                            value = "在职"
+                        } else if ("2" == value) {
+                            value = "离职"
+                        }
+                        return value;
+                    }
+                } ]
+            ],
+            onBeforeLoad: function (param) {
+                //console.dir(param);
+                //TODO 发送加载数据的请求前触发,请求权限数据，隐藏不可操作按钮
+            }
+        }).datagrid("clickButton",
+        [
+           {
+                type: "ADD",
+                width: 350,
+                height: 400,
+                content: "添加员工",
+                url: 'page/userAdd.html'
+            },
+            {type: "CLEAR"},
+            {type: "QUERY"}
+        ]);
+
+    })
+
+
+</script>
+</body>
+</html>

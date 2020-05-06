@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<form action="http://127.0.0.1:8000/users/add_user/" method="post" enctype="multipart/form-data">
+
+    <div class="datagrid-body">
+        <table class=" datagrid-table-s datagrid-htable">
+            <tr class="datagrid-row">
+                <td class="view_table_left"><span style="color:red;">*</span>姓名：</td>
+                <td class="view_table_right">
+                    <input class="easyui-textbox" name="userName" data-options="required:true"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="view_table_left"><span style="color:red;">*</span>代码：</td>
+                <td class="view_table_right">
+                    <input class="easyui-textbox" name="userCode" data-options="required:true"/>
+                </td>
+            </tr>
+            <tr class="datagrid-row">
+                <td class="view_table_left"><span style="color:red;">*</span>性别：</td>
+                <td class="view_table_right">
+                   <span class="radioSpan">
+                    <input type="radio" name="sex" class="easyui-validatebox free-type-radio" checked="checked" value="1">男
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="sex" class="easyui-validatebox free-type-radio" value="2">女
+                   </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="view_table_left">在职状态：</td>
+                <td class="view_table_right">
+                  <span class="radioSpan">
+                    <input type="radio" name="state" class="easyui-validatebox free-type-radio" checked="checked" value="1">在职
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input type="radio" name="state" class="easyui-validatebox free-type-radio" value="2">离职
+                  </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</form>
+</body>
+</html>

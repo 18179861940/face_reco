@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>attend</title>
+    <!--<link rel="stylesheet" href="../css/index.css" media="all"/>-->
+
+
+    <!--<link rel="stylesheet" href="../static/css/index.css"/>
+    <script type="text/javascript" src="../static/js/ajax.js"></script>
+    <script type="text/javascript" src="../static/js/access_token.js"></script>
+    <script type="text/javascript" src="../static/js/index.js"></script>-->
+</head>
+<style>
+#videoInput{
+    width: 50%;
+    height: 50%;
+   <!-- margin: 50px auto;-->
+    background-color: aquamarine;
+    display: block;
+    <!--display:none !important;-->
+}
+#canvasOutput{
+    width: 100%;
+    height: 100%;
+    <!--margin: 5px auto;-->
+    background-color: aquamarine;
+    display: block;
+    <!--display:none !important;-->
+}
+
+html body {
+    height: 750px;
+    margin: 5px;
+}
+.wrapper {
+    width: 80%;
+    margin: 0 auto; /* 上下为0 左右auto*/
+    text-align: center;
+    height: 100%;
+    <!--background-color: #FF3333;-->
+    font-size: 15px;
+}
+
+.content * {
+    display: inline;
+}
+
+.content .primary {
+    width: 70%;
+    float: left;
+    display: inline;
+    background-color: #0099FF;
+}
+
+.content .secondary {
+    width: 30%;
+    height:720px;
+    float: right;
+    display: inline;
+    background-color: #DDDDDD;
+}
+
+</style>
+<body>
+
+<div class="wrapper">
+    <div class="content">
+
+        <div class="primary">
+
+          <canvas id="canvasOutput" width="1000px" height="900px"></canvas>
+
+
+        </div>
+
+        <div class="secondary">
+            <video id="videoInput" width="100%" height="900px"></video>
+           <!--上班打卡&nbsp;&nbsp;李杰&nbsp;&nbsp;2020-04-15 09:00:00-->
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>
+
+
+<!--<script type="text/javascript" src="../js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="../js/attend.js"></script>-->
+<script src="../js/utils.js"></script>
+<script src="../js/jquery-3.4.1.min.js"></script>
+<script id="codeSnippet" type="text/code-snippet">
+        let video = document.getElementById('videoInput');
+        let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+        let gray = new cv.Mat();
+        let cap = new cv.VideoCapture(video);
+        let faces = new cv.RectVector();
+        let classifier = new cv.CascadeClassifier();
+        let cardFlag=1;
+        let re=0;
+        utils.executeCode('codeEditor');
+        // load pre-trained classifiers
+        classifier.load('../haarcascade_frontalface_default.xml');
+
+        const FPS = 30;
+        <!--function processVideo() {
+            try {
+                if (!streaming) {
+                    // clean and stop.
+                    src.delete();
+                    dst.delete();
+                    gray.delete();
+                    faces.delete();
+                    classifier.delete();
+                    return;
+                }
+                let begin = Date.now();
+                // start processing.
+                cap.read(src);
+                src.copyTo(dst);
+                cv.cvtColor(dst, gray, cv.COLOR_RGBA2GRAY, 0);
+                // detect faces.
+                classifier.detectMultiScale(gray, faces, 1.1, 3, 0);
+                // draw faces.
+                for (let i = 0; i < faces.size(); ++i) {
+                    let face = faces.get(i);
+                    let point1 = new cv.Point(face.x, face.y);
+                    let point2 = new cv.Point(face.x + face.width, face.y + face.height);
+                    cv.rectangle(dst, point1, point2, [0, 255, 0, 255]);
+                    cardFlag =cardFlag + 1;
+                    console.log("******",cardFlag)
+                    if(cardFlag % 5==0){
+                        // 请求人脸打卡接口
+                        var data = document.getElementById("canvasOutput").toDataURL('image/jpg');
+                        var base64 = data.split(",")[1];
+                        $.ajax({
+                             url:"http://127.0.0.1:8000/users/register_face/",
+                             type:"post",
+                             data:{"base64":base64},
+                             dataType:"text",
+                             async:false,
+                             success:function(data){
+                                &lt;!&ndash; if(data!=null){
+                                  // 页面显示提示信息
+                                    stry = JSON.parse(data)
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    tbody.innerHTML = "打卡成功";
+                                    tbody.style.color="green";
+                                 }else{
+                                    var tbody = document.getElementById('errorMessage'); 
+                                    tbody.innerHTML = "识别失败";
+                                    tbody.style.color="red";
+                                 }&ndash;&gt;
+
+                             }
+
+                         });
+                    }
+                }
+
+                cv.imshow('canvasOutput', dst);
+                // schedule the next one.
+                let delay = 1000/FPS - (Date.now() - begin);
+                setTimeout(processVideo, delay);
+            } catch (err) {
+                utils.printError(err);
+                }
+        };
+        // schedule the first one.
+        setTimeout(processVideo, 0);-->
+</script>
+<script type="text/javascript">
+
+
+
+
+</script>
+</body>
+</html>
+
+</html>

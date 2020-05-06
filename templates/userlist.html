@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>员工列表</title>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/root.js"></script>
+</head>
+<body>
+<div>
+    <div style="float: right; margin-bottom: 20px">
+        员工姓名：<input type="text" class="userName"/>
+        员工代码：<input type="text" class="userC
+
+
+        ode"/>
+        在职状态：
+        <input type="radio" value="1" name="state" checked='checked'> 在职
+        <input type="radio" value="2" name="state"> 离职
+        开始时间：<input type="date"/>
+        结束时间：<input type="date"/>
+        <button id="search">搜索</button>
+    </div>
+    <div style="width:90%;margin: 10px auto">
+        <table border="1" id="userListTable" width="90%" height="50" cellspacing="0" style="text-align: center;">
+            <thead>
+            <tr>
+                <td>id</td>
+                <td>员工名</td>
+                <td>员工代码</td>
+                <td>性别</td>
+                <td>录入时间</td>
+                <td>在职状态</td>
+                <td>操作</td>
+            </tr>
+            </thead>
+            <tbody id="tbMain">
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+<script>
+    var search = document.getElementById("search");
+    var senddata = {
+        userName: "",
+        userCode: "",
+        sex: "1",  // 性别
+        state: "1",  // 在职状态
+        startDate: "",  // 开始日期
+        endDate: "",  // 结束日期
+        page: "1",  // 当前页
+        rows: "15",  // 每页多少条数据
+    };
+    $(".userName").blur(function(){
+            senddata.userName = $(this).val();
+    });
+    $(".userCode").blur(function(){
+            senddata.userCode = $(this).val();
+    });
+    $(".startTime").blur(function(){
+            senddata.startDate = $(this).val();
+    });
+    $(".endTime").blur(function(){
+            senddata.endDate = $(this).val();
+    });
+    search.onclick = function () {
+        senddata.state = $("input[name='state']:checked").val();
+        $.ajax({
+            url: baseUrl + "users/get_user_list/",
+            type: "post",
+            data: senddata,
+            dataType: "text",
+            async: true,
+            success: function (data) {
+                if (data != null) {
+                    // 页面显示提示信息
+                     $("#tbMain").empty();
+                    let stry = JSON.parse(data);
+                    let datainfo = stry["rows"];
+                    jQuery.each(datainfo, function (i, item) {
+
+                        if (item.sex === "0") {
+                            var gender = "男"
+                        } else {
+                            var gender = "女"
+                        }
+                        if (item.state === "0") {
+                            var state = "在职"
+                        } else {
+                            var state = "离职"
+                        }
+                        var insertTime = item.insertTime;
+                        var time_list = insertTime.split("T");
+                        var this_time = time_list[0] + " " + time_list[1]
+                        var tr = '<td>' + (i + 1) + '</td>' +
+                            '<td>' + item.userName + '</td>' +
+                            '<td>' + item.userCode + '</td>' +
+                            '<td>' + gender + '</td>' +
+                            '<td>' + this_time + '</td>' +
+                            '<td>' + state + '</td>' +
+                            '<td><a href="" class="btn btn-info">编辑员工</a>' + " " +
+                            '<a href="" class="btn btn-danger">删除员工</a></td>';
+                        $("#tbMain").append('<tr>' + tr + '</tr>');
+
+                    });
+                } else {
+                     $("#tbMain").html("查询失败")
+                }
+
+            }
+
+        })
+    };
+
+
+</script>
+</html>
