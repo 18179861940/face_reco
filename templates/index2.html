@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>打卡</title>
+</head>
+<body>
+    <canvas id="video-canvas" width=800 height=600 style="background-color:rgb(211, 103, 103);
+                   margin:0 auto; border-radius: 10px;"></canvas>
+    <p id="errorMessage"></p>
+	<script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript">
+
+		var canvas = document.getElementById('video-canvas');
+		let page = true;
+
+        // 请求后台打开ip摄像头接口
+        var xhr = new XMLHttpRequest();
+        xhr.multipart = true;
+        xhr.open("get","http://127.0.0.1:8000/users/open_camera/");
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4){
+                console.log("xhr.responseText", xhr.responseText)
+                //var json=JSON.parse(xhr.responseText)
+                //let base64Image = json["img"];
+                let baseData = xhr.responseText
+                let arrat_list = baseData.split("\\r\\n");
+                var j=0;
+                for(var i=0; i < arrat_list.length; i++){
+                    setTimeout(function(){
+                        console.log("i",j)
+                        let base64Image = arrat_list[j];
+                        var base64Img = 'data:image/png;base64,'+ base64Image;
+                        console.log("base64Img",base64Img)
+                        //ImageToCanvas(imgUrl)
+                        var canvas = document.getElementById("video-canvas");
+                        let ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.src = base64Img;
+                        img.onload = function() {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                        };
+                        j++;
+                    },5000);
+
+
+                }
+
+                //let base64Img = canvas.toDataURL("image/jpg");
+
+            }
+        };
+        xhr.send(null);
+
+        function ImageToCanvas(image) {
+            var canvas = document.createElement("canvas");
+            let ctx = canvas.getContext('2d');
+            let img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+            };
+            img.src = image;
+            return canvas;
+        }
+
+
+	</script>
+
+
+</body>
+</html>
