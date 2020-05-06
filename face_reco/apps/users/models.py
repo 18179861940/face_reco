@@ -16,6 +16,10 @@ class AttendCard(models.Model):
     is_delete = models.BooleanField(default=False)  # 是否删除
     face_image = models.ImageField(upload_to="attendFace", blank=True, null=True, verbose_name='打卡证据图片')
 
+    @property
+    def face_image_url(self):
+        if self.face_image and hasattr(self.face_image, 'url'):
+            return self.face_image.url
     class Meta:
         db_table = 'card_table'
 

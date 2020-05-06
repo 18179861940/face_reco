@@ -23,7 +23,7 @@ from utils.time_difference import minNums, houNums
 
 # 上班打卡时间范围
 s_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '7:30', '%Y-%m-%d%H:%M')
-s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:29', '%Y-%m-%d%H:%M')
+s_time1 = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '9:30', '%Y-%m-%d%H:%M')
 # 上下班打卡分界时间
 m_time = datetime.datetime.strptime(str(datetime.datetime.now().date()) + '12:30', '%Y-%m-%d%H:%M')
 # 下班打卡时间范围
@@ -68,7 +68,8 @@ class FaceCardView(APIView):
                                 # 判断当前这个人是否已经上班打过卡
                                 if not user_up:
                                     image_data = base64.b64decode(base64Img)
-                                    image_url = os.path.join(MEDIA_ROOT, '/up_img/%s.jpg' % int(time.time()))
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/up_img/%s.jpg' % int(time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
                                     with open(image_url, 'wb') as f:
                                         f.write(image_data)  # 截取media路径，存放在字段中
                                     AttendCard.objects.create(userName=user_name, attendType="1", attendState="1",
@@ -92,7 +93,14 @@ class FaceCardView(APIView):
                             # 是否在下班时间打卡范围
                             elif n_time > e_time and n_time < e_time1:
                                 if user_up and not user_down:
-                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/down_img/%s.jpg' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
+                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1",
+                                                              face_image=image_url)
                                     clockData = {
                                         "userName": user_name,
                                         "pushTime": n_time,
@@ -145,9 +153,21 @@ class FaceCardView(APIView):
                                         }
                                         clock_list.append(clockData)
                                 else:  # 上班时间没有打卡，上班时间缺卡
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/up_img/%s.jpg' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    image_url1 = os.path.join(MEDIA_ROOT, 'attendFace/down_img/%s.jpg' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
+                                    with open(image_url1, 'wb') as f:
+                                        f.write(image_data)  # 下班打卡
                                     AttendCard.objects.create(userName=user_name, attendType="1", attendState="4",
-                                                              pushTime=s_time1)
-                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1")
+                                                              pushTime=s_time1, face_image=image_url)
+                                    AttendCard.objects.create(userName=user_name, attendType="2", attendState="1",
+                                                              face_image=image_url1)
                                     clockData = {
                                         "userName": user_name,
                                         "pushTime": n_time,
@@ -167,10 +187,17 @@ class FaceCardView(APIView):
                                     }
                                     clock_list.append(clockData)
                                 else:
+                                    image_data = base64.b64decode(base64Img)
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/up_img/%s.jpg' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
+                                    with open(image_url, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="1",
-                                        attendState="2"
+                                        attendState="2",
+                                        face_image=image_url
                                     )
                                     clockData = {
                                         "userName": user_name,
@@ -184,8 +211,9 @@ class FaceCardView(APIView):
                                 # 上班没有打卡，则上班打卡缺卡
                                 if user_up and not user_down:
                                     image_data = base64.b64decode(base64Img)
-                                    image_url = os.path.join(MEDIA_ROOT, '/up_img/%s.jpg' % int(time.time()))
-                                    print(image_url)
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/down_img/%s.jpg' % int(
+                                        time.strftime("%Y%m%d%H%M%S"))).replace(
+                                        '\\', '/')
                                     with open(image_url, 'wb') as f:
                                         f.write(image_data)  # 截取media路径，存放在字段中
                                     AttendCard.objects.create(
@@ -229,16 +257,16 @@ class FaceCardView(APIView):
                                         clock_list.append(clockData)
                                 else:  # 上班没有打卡，则上班打卡缺卡,下班还早退
                                     image_data = base64.b64decode(base64Img)
-                                    image_url = os.path.join(MEDIA_ROOT, 'up_img/%s.png' % int(
+                                    image_url = os.path.join(MEDIA_ROOT, 'attendFace/up_img/%s.jpg' % int(
                                         time.strftime("%Y%m%d%H%M%S"))).replace(
                                         '\\', '/')
-                                    image_url1 = os.path.join(MEDIA_ROOT, 'down_img/%s.png' % int(
+                                    image_url1 = os.path.join(MEDIA_ROOT, 'attendFace/up_img/%s.jpg' % int(
                                         time.strftime("%Y%m%d%H%M%S"))).replace(
                                         '\\', '/')
-                                    print("image_url1:", image_url1)
                                     with open(image_url, 'wb') as f:
                                         f.write(image_data)  # 截取media路径，存放在字段中
-                                        print("image_data:", image_data)
+                                    with open(image_url1, 'wb') as f:
+                                        f.write(image_data)  # 截取media路径，存放在字段中
                                     AttendCard.objects.create(
                                         userName=user_name,
                                         attendType="1",

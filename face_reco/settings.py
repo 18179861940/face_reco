@@ -214,5 +214,6 @@ LOGGING = {
 }
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
-MEDIA_ROOT = 'media'
+# MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media').replace("\\", "/")
 
