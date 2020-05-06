@@ -5,123 +5,123 @@
     <title>考勤列表</title>
 </head>
 <body>
-    <div>
-        <div style="float: right; margin-bottom: 20px">
-            姓名：<input />
-            打卡类型：<select>
-                          <option value ="1">上班打卡</option>
-                          <option value ="2">下班打卡</option>
-                    </select>
-            打卡状态：<select>
-                          <option value ="1">正常</option>
-                          <option value ="2">迟到</option>
-                          <option value ="2">早退</option>
-                    </select>
-            开始时间：<input />
-            结束时间：<input />
-            <button>搜索</button>
-        </div>
-        <div style="width:90%;margin: 10px auto">
-            <table border="1" width="90%" height="50" cellspacing="0" style="text-align: center;">
-                <thead>
-                    <tr>
-                        <td>id</td>
-                        <td>姓名</td>
-                        <td>打卡类型</td>
-                        <td>打卡时间</td>
-                        <td>打卡状态</td>
-                    </tr>
-                </thead>
-                <tbody id="tbMain">
-
-                </tbody>
-            </table>
-        </div>
-
+<div id="app">
+    <div style="float: right; margin-bottom: 20px">
+        姓名：<input type="text" id="name"/>
+        打卡类型：
+        <input type="radio" value="1" name="attendType" checked='checked'> 上班打卡
+        <input type="radio" value="2" name="attendType"> 下班打卡
+        打卡状态：
+        <input type="radio" value="1" name="attendState" checked='checked'> 正常
+        <input type="radio" value="2" name="attendState"> 迟到
+        <input type="radio" value="3" name="attendState"> 早退
+        开始时间：<input class="startTime" type="date"/>
+        结束时间：<input class="endTime" type="date"/>
+        <button id="search">搜索</button>
+        <button onclick='tableToExcel()'>导出数据</button>
     </div>
+    <div style="width:90%;margin: 10px auto">
+        <table border="1" width="90%" height="50" cellspacing="0" style="text-align: center;">
+            <thead>
+            <tr>
+                <td>id</td>
+                <td>姓名</td>
+                <td>员工编号</td>
+                <td>打卡类型</td>
+                <td>打卡时间</td>
+                <td>打卡状态</td>
+            </tr>
+            </thead>
+            <tbody id="tbMain" >
+            <tr></tr>
+            </tbody>
+        </table>
+        <table width="60%" align="right">
+            <tr>
+                <td>
+                    <div id="barcon" name="barcon"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
 </body>
-<script>
-    function list(){
+<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript" src="js/root.js"></script>
+<script type="text/javascript" src="js/cardlist.js"></script>
+<script type="text/javascript">
+    function list() {
         // 请求打卡列表接口
         var xhr = new XMLHttpRequest();
-        xhr.open("get","http://127.0.0.1:8000/users/get_card_list/");
+        xhr.open("get", baseUrl + "users/get_card_list/");
         xhr.send(null);
-        xhr.onreadystatechange = function(){
-            if(xhr.status === 200 && xhr.readyState === 4){
-                console.log("列表",xhr.responseText);
+        xhr.onreadystatechange = function () {
+            if (xhr.status === 200 && xhr.readyState === 4) {
                 let result = xhr.responseText;
                 let jsonResponse = JSON.parse(result);
-                var tbody = document.getElementById('tbMain');  
-                let per = jsonResponse["rows"];
-                for(var i = 0;i < per.length; i++){ //遍历一下json数据  
-                  var trow = getDataRow(per[i]); //定义一个方法,返回tr数据  
-                  tbody.appendChild(trow);  
-                } 
-                console.log("列表1",jsonResponse["row"]);
+                var tbody = document.getElementById('tbMain');
+                let per = jsonResponse["rows"];
+                window.dataInfo = per;
+                for (var i = 0; i < per.length; i++) { //遍历一下json数据  
+                    var trow = getDataRow(i, per[i]); //定义一个方法,返回tr数据  
+                    tbody.appendChild(trow);
+                }
             }
         }
-    };
-    function getDataRow(h){  
-     var row = document.createElement('tr'); //创建行  
-       
-     var idCell = document.createElement('td'); //创建第一列id  
-     idCell.innerHTML = h.id; //填充数据  
-     row.appendChild(idCell); //加入行  ，下面类似  
-       
-     var nameCell = document.createElement('td');//创建第二列name  
-     nameCell.innerHTML = h.userName;  
-     row.appendChild(nameCell);  
-       
-     var cardTypeCell = document.createElement('td');//创建第三列打卡类型 
-     if(h.attendType==="1"){
-         user_type="上班"
-     }else{
-         user_type="下班"
-     }
-     cardTypeCell.innerHTML = user_type;  
-     row.appendChild(cardTypeCell);  
-
-     var endTimeCell = document.createElement('td');//创建第四列打卡时间  
-     endTimeCell.innerHTML = h.pushTime;  
-     row.appendChild(endTimeCell); 
-
-     var stateCell = document.createElement('td');//创建第四列打卡状态 
-     if(h.attendState==="1"){
-         attend_state="正常"
-     }else if(h.attend_state==="2"){
-         attend_state="迟到"
-     }else{
-         attend_state="早退"
-     }
-     stateCell.innerHTML = attend_state;  
-     row.appendChild(stateCell);   
-       
-     //到这里，json中的数据已经添加到表格中，下面为每行末尾添加删除按钮  
-    
-     return row; //返回tr数据      
-     };
-    function deleteReco(user_id) {
-        let xhr = new XMLHttpRequest();
-        xhr.open("post","http://127.0.0.1:8000/users/delete_card/");
-        xhr.setRequestHeader("Content-Type","application/json");
-        let data = {
-            "user_id":user_id
-        };
-
-
-        if (type === "formdata") {
-            data = new FormData();
-            data.append("key", "value");
-        }
-
-        xhr.send(data);
-        // （4） 回调函数  success
-        xhr.onreadystatechange = function() {
-            if(this.status===200){
-                console.log("responseText",this.responseText)
-            }
-        };
     }
+
+    function getDataRow(i, h) {
+        var row = document.createElement('tr'); //创建行  
+
+        var idCell = document.createElement('td'); //创建第一列id  
+        idCell.innerHTML = i + 1; //填充数据  
+        row.appendChild(idCell); //加入行  ，下面类似  
+
+        var nameCell = document.createElement('td');//创建第二列name  
+        nameCell.innerHTML = h.userName;
+        row.appendChild(nameCell);
+
+        var nameCodeCell = document.createElement('td');//创建第二列name  
+        nameCodeCell.innerHTML = h.userCode;
+        row.appendChild(nameCodeCell);
+
+
+        var cardTypeCell = document.createElement('td');//创建第三列打卡类型 
+        if (h.attendType === "1") {
+            user_type = "上班"
+        } else {
+            user_type = "下班"
+        }
+        cardTypeCell.innerHTML = user_type;
+        row.appendChild(cardTypeCell);
+
+        var endTimeCell = document.createElement('td');//创建第四列打卡时间 
+        var pushTime = h.pushTime;
+        var time_list = pushTime.split("T");
+        time_time = time_list[1].split(".");
+        var this_time = time_list[0] + " " + time_time[0];
+        endTimeCell.innerHTML = this_time;
+        row.appendChild(endTimeCell);
+
+        var stateCell = document.createElement('td');//创建第四列打卡状态 
+        if (h.attendState === "1") {
+            attend_state = "正常"
+        } else if (h.attend_state === "2") {
+            attend_state = "迟到"
+        } else {
+            attend_state = "早退"
+        }
+        stateCell.innerHTML = attend_state;
+        row.appendChild(stateCell);
+
+        //到这里，json中的数据已经添加到表格中，下面为每行末尾添加删除按钮  
+
+        return row; //返回tr数据      
+    };
+
     list()
+
 </script>
 </html>
