@@ -6,7 +6,7 @@ django-cors-headers==3.2.1
 djangorestframework==3.11.0
 idna==2.9
 image==1.5.30
-numpy==1.18.2
+numpy==1.22.0
 opencv-contrib-python==4.2.0.34
 opencv-python==4.2.0.34
 pandas==1.0.3
